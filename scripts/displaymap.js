@@ -13,10 +13,10 @@ var timelayers = [ ];
 
 $(document).ready(function(){
   // make a Leaflet map
-  map = new L.Map('map', { zoomControl: false, panControl: false });
+  map = new L.Map('map');
   map.attributionControl.setPrefix('');
-  L.control.pan().addTo(map);
-  L.control.zoom().addTo(map);
+  //L.control.pan().addTo(map);
+  //L.control.zoom().addTo(map);
   var terrain = 'http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png';
   var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors, Tiles by Stamen Design';
   terrainLayer = new L.TileLayer(terrain, {maxZoom: 17, attribution: terrainAttrib});
@@ -49,10 +49,7 @@ $(document).ready(function(){
   // load default GeoJSON from Chicago
   $.getJSON('chicago.geojson', function(gj){
     L.geoJson(gj, { onEachFeature: jsonmap });
-    map.fitBounds(
-      (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
-      .pad(0.05)
-    );
+    map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
     updateTimeline();
   });
 });
@@ -156,10 +153,7 @@ var dropFile = function(e){
                 }
               }
             }
-            map.fitBounds(
-              (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
-              .pad(0.05)
-            );
+            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
             updateTimeline();
           }
           return;
@@ -168,10 +162,7 @@ var dropFile = function(e){
           /* style: function(feature){ }, */
           onEachFeature: jsonmap
         });
-        map.fitBounds(
-          (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
-          .pad(0.05)
-        );
+        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
         updateTimeline();
       };
       reader.readAsText(files[i]);
