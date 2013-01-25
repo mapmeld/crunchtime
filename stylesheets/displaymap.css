@@ -7,18 +7,17 @@ body {
   margin:0;
   padding:0;
   font-family: arial, sansserif;
-  border: 5px solid #444;
   background-color: #f0f0f0;
 }
 #map {
-  height:99%;
+  height:85%;
   overflow:none;
   position:absolute;
-  top:0;
+  top:14%;
   bottom:0;
-  width:75%;
-  left:25%;
-  border-left: 6px solid #444;
+  width:100%;
+  left:0;
+  border-top: 6px solid #444;
 }
 .span2{
   width: 11%;
@@ -37,34 +36,34 @@ ul li{
   margin-top: 8px;
   margin-bottom: 8px;
 }
-#sidebar{
-  padding-left: 20px;
-  padding-top: 8px;
-  border-right: 5px solid #444;
-  width: 24.7%;
-  height: 97%;
+#topbar{
+  padding-bottom: 20px;
+  width: 100%;
+  height: 15%;
   overflow: none;
 }
-.modal-body p{
-  font-size: 13pt !important;
-  line-height: 25pt !important;
+#slidebar {
+  width: 50%;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 24%;
+  margin-right: 24%;
 }
-.mapkey{
-  background-color: #fff;
-  padding: 12px;
+#slidebar a {
+  font-size:10px;
+  text-decoration:none;
+  display: none;
 }
-.mapkey li{
-  list-style-type: none;
-  margin-left: -23px;
+#slidebar a.ui-slider-handle{
+  display: block;
 }
-.mapkey img{
-  width: 17px;
-  vertical-align: middle;
-  margin-left: -5px;
-  padding-right: 5px;
+.output, .instructions{
+  font-family: verdana, sans-serif;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 5px;
 }
-.mapkey span{
-  vertical-align: middle;
-  padding-left: 8px;
-  padding-right: 8px;
+.output{
+  display: none;
 }
