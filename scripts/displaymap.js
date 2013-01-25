@@ -1,4 +1,5 @@
 var DEBUG = false;
+var firstfile = true;
 
 var map, playStep;
 var mytime = new Date();
@@ -44,6 +45,16 @@ $(document).ready(function(){
       geotimes(ui.value);
     }
   });
+  
+  // load default GeoJSON from Chicago
+  $.getJSON('chicago.geojson', function(gj){
+    L.geoJson(gj, { onEachFeature: jsonmap });
+    map.fitBounds(
+      (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
+      .pad(0.05)
+    );
+    updateTimeline();
+  });
 });
 
 var displayTime = function(t){
@@ -61,6 +72,23 @@ var dropFile = function(e){
 
   var files = e.dataTransfer.files;
   if(files && files.length){
+    if(firstfile){
+      // remove default map
+      for(var t=0;t<timelayers.length;t++){
+        map.removeLayer(timelayers[t].geo);
+      }
+      timelayers = [ ];
+
+      // reset defaults
+      mintime = (new Date("January 1, 5000")) * 1;
+      maxtime = (new Date("January 1, 100")) * 1;
+      maxlat = -90;
+      minlat = 90;
+      maxlng = -180;
+      minlng = 180;
+    }
+    firstfile = false;
+
     for(var i=0;i<files.length;i++){
       var reader = new FileReader();
       reader.onload = function(e){
@@ -128,82 +156,22 @@ var dropFile = function(e){
                 }
               }
             }
-            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+            map.fitBounds(
+              (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
+              .pad(0.05)
+            );
             updateTimeline();
           }
           return;
         }
         L.geoJson(injson, {
-          /* style: function(feature){
-          
-          }, */
-          onEachFeature: function(feature, layer){
-            var timefeature = {
-              geo: layer
-            };
-            
-            // read map boundaries
-            if(feature.geometry.type == "Polygon"){
-              var pts = feature.geometry.coordinates[0];
-              for(var p=0;p<pts.length;p++){
-                minlat = Math.min(minlat, pts[p][1]);
-                maxlat = Math.max(maxlat, pts[p][1]);
-                minlng = Math.min(minlng, pts[p][0]);
-                maxlng = Math.max(maxlng, pts[p][0]);
-              }
-            }
-            
-            // read any start and end times
-            if(typeof feature.properties.start != 'undefined'){
-              if(isNaN(feature.properties.start * 1)){
-                timefeature.start = new Date(feature.properties.start);
-              }
-              else if(feature.properties.start * 1 >= 100 && feature.properties.start * 1 <= 5000){
-                timefeature.start = new Date("January 10, " + feature.properties.start);
-              }
-              else{
-                timefeature.start = new Date(1 * feature.properties.start);
-              }
-              mintime = Math.min( mintime, timefeature.start * 1 );
-              maxtime = Math.max( maxtime, timefeature.start * 1 );
-            }
-            if(typeof feature.properties.end != 'undefined'){
-              if(isNaN(feature.properties.end * 1)){
-                timefeature.end = new Date(feature.properties.end);
-              }
-              else if(feature.properties.end * 1 >= 100 && feature.properties.end * 1 <= 5000){
-                timefeature.end = new Date("January 10, " + feature.properties.end);
-              }
-              else{
-                timefeature.end = new Date(1 * feature.properties.end);
-              }
-              mintime = Math.min( mintime, timefeature.end * 1 );
-              maxtime = Math.max( maxtime, timefeature.end * 1 );
-            }
-            
-            if(DEBUG && typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
-              // no start or end. Add a random date in DEBUG mode
-              timefeature.start = new Date( "January 10, " + Math.round(Math.random() * 100 + 1900) );
-              timefeature.end = new Date( timefeature.start * 1 + Math.round(Math.random() * 20 * 365 * 24 * 60 * 60 * 1000) );
-
-              mintime = Math.min( mintime, timefeature.start * 1 );
-              maxtime = Math.max( maxtime, timefeature.start * 1 );
-              mintime = Math.min( mintime, timefeature.end * 1 );
-              maxtime = Math.max( maxtime, timefeature.end * 1 );
-              timelayers.push(timefeature);
-            }
-            else if(typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
-              // no start or end, so just add it to the map
-              layer.setStyle({ clickable: false });
-              map.addLayer(layer);
-            }
-            else{
-              // save this timefeature
-              timelayers.push(timefeature);
-            }
-          }
+          /* style: function(feature){ }, */
+          onEachFeature: jsonmap
         });
-        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        map.fitBounds(
+          (new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)))
+          .pad(0.05)
+        );
         updateTimeline();
       };
       reader.readAsText(files[i]);
@@ -212,7 +180,7 @@ var dropFile = function(e){
 };
 
 function updateTimeline(){
-  if(maxtime > mintime){
+  if(maxtime > mintime && !firstfile){
     $(".instructions").css({ display: "none" });
     $(".output").css({ display: "block" });
   }
@@ -301,6 +269,70 @@ function geotimes(nowtime){
         }
       }
     }
+  }
+}
+
+function jsonmap(feature, layer){
+  var timefeature = { geo: layer };
+  
+  // read map boundaries
+  if(feature.geometry.type == "Polygon"){
+    var pts = feature.geometry.coordinates[0];
+    for(var p=0;p<pts.length;p++){
+      minlat = Math.min(minlat, pts[p][1]);
+      maxlat = Math.max(maxlat, pts[p][1]);
+      minlng = Math.min(minlng, pts[p][0]);
+      maxlng = Math.max(maxlng, pts[p][0]);
+    }
+  }
+  
+  // read any start and end times
+  if(typeof feature.properties.start != 'undefined'){
+    if(isNaN(feature.properties.start * 1)){
+      timefeature.start = new Date(feature.properties.start);
+    }
+    else if(feature.properties.start * 1 >= 100 && feature.properties.start * 1 <= 5000){
+      timefeature.start = new Date("January 10, " + feature.properties.start);
+    }
+    else{
+      timefeature.start = new Date(1 * feature.properties.start);
+    }
+    mintime = Math.min( mintime, timefeature.start * 1 );
+    maxtime = Math.max( maxtime, timefeature.start * 1 );
+  }
+  if(typeof feature.properties.end != 'undefined'){
+    if(isNaN(feature.properties.end * 1)){
+      timefeature.end = new Date(feature.properties.end);
+    }
+    else if(feature.properties.end * 1 >= 100 && feature.properties.end * 1 <= 5000){
+      timefeature.end = new Date("January 10, " + feature.properties.end);
+    }
+    else{
+      timefeature.end = new Date(1 * feature.properties.end);
+    }
+    mintime = Math.min( mintime, timefeature.end * 1 );
+    maxtime = Math.max( maxtime, timefeature.end * 1 );
+  }
+            
+  if(DEBUG && typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
+    // no start or end. Add a random date in DEBUG mode
+    timefeature.start = new Date( "January 10, " + Math.round(Math.random() * 100 + 1900) );
+    timefeature.end = new Date( timefeature.start * 1 + Math.round(Math.random() * 20 * 365 * 24 * 60 * 60 * 1000) );
+
+    mintime = Math.min( mintime, timefeature.start * 1 );
+    maxtime = Math.max( maxtime, timefeature.start * 1 );
+    mintime = Math.min( mintime, timefeature.end * 1 );
+    maxtime = Math.max( maxtime, timefeature.end * 1 );
+    timelayers.push(timefeature);
+  }
+  else if(typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
+    // no start or end, so just add it to the map
+    layer.setStyle({ clickable: false });
+    map.addLayer(layer);
+  }
+  else{
+    // save this timefeature
+    timelayers.push(timefeature);
   }
 }
 
