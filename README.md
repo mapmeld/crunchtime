@@ -1,6 +1,6 @@
 # Crunchtime
 
-Experimental timeline-map setup
+Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
 Currently supports:
 
@@ -12,11 +12,17 @@ Currently supports:
 
 * KMLs using &lt;begin&gt; and &lt;end&gt; tags (based on samples from http://MajuroJS.org/draw/chicago )
 
-* KML Points and Polygons with no time information (appear at all times, do not include styles or other KML properties)
+* KML &lt;Point&gt;s and &lt;Polygon&gt;s with no time information (appear at all times, do not include styles or other KML properties)
 
 Will research:
 
+* Custom CSV / TSV files
+
+* GPX files
+
 * &lt;Track&gt; in KML
+
+* KML geometry support beyond Point and Polygon
 
 ## License
 
