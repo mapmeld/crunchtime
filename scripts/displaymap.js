@@ -17,7 +17,7 @@ $(document).ready(function(){
   map.attributionControl.setPrefix('');
   //L.control.pan().addTo(map);
   //L.control.zoom().addTo(map);
-  var terrain = 'http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png';
+  var terrain = 'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png';
   var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors, Tiles by Stamen Design';
   terrainLayer = new L.TileLayer(terrain, {maxZoom: 15, attribution: terrainAttrib});
   map.addLayer(terrainLayer);
