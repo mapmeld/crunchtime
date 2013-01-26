@@ -1,7 +1,7 @@
 var DEBUG = false;
 var firstfile = true;
 
-var map, playStep;
+var map, playStep, fileindex;
 var mytime = new Date();
 var mintime = (new Date("January 1, 5000")) * 1;
 var maxtime = (new Date("January 1, 100")) * 1;
@@ -86,7 +86,7 @@ var dropFile = function(e){
     }
     firstfile = false;
 
-    for(var i=0;i<files.length;i++){
+    //for(var i=0;i<files.length;i++){
       var reader = new FileReader();
       reader.onload = function(e){
         var injson;
@@ -153,20 +153,36 @@ var dropFile = function(e){
                 }
               }
             }
-            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+            //map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
             updateTimeline();
           }
-          return;
+          fileindex++;
+          if(fileindex < files.length){
+            return reader.readAsText(files[fileindex]);
+          }
+          else{
+            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+            return;
+          }
         }
         L.geoJson(injson, {
           /* style: function(feature){ }, */
           onEachFeature: jsonmap
         });
-        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        //map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
         updateTimeline();
+        
+        fileindex++;
+        if(fileindex < files.length){
+          reader.readAsText(files[fileindex]);
+        }
+        else{
+          map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        }
       };
-      reader.readAsText(files[i]);
-    }
+      fileindex = 0;
+      reader.readAsText(files[0]);
+    //}
   }
 };
 
