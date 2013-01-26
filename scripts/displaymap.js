@@ -94,8 +94,87 @@ var dropFile = function(e){
           injson = $.parseJSON( e.target.result );
         }
         catch(err){
-          // XML-based (assume KML)
-          var placemarks = $.parseXML( e.target.result ).getElementsByTagName("Placemark");
+          // XML-based (KML, GPX)
+          var xmlf;
+          try{
+            xmlf = $.parseXML( e.target.result );
+          }
+          catch(err){
+            // neither JSON or XML-based; go for CSV
+            var lines = e.target.result.split('\n');
+            if(lines.length == 1){
+              lines = lines[0].split('\r');
+            }
+            var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+            for(var i=0;i<lines.length;i++){
+              var rawline = replaceAll(lines[i],'"','').split(',');
+              // skip some metadata
+              if(rawline.length == 1 || isNaN( rawline[0] * 1) ){
+                continue;
+              }
+              var mycoord = new L.LatLng( rawline[2] * 1.0, rawline[3] * 1.0 );
+              maxlat = Math.max(maxlat, mycoord.lat);
+              maxlng = Math.max(maxlng, mycoord.lng);
+              minlat = Math.min(minlat, mycoord.lat);
+              minlng = Math.min(minlng, mycoord.lng);              
+
+              var mytime = new Date( rawline[8] );
+              mintime = Math.min( mintime, mytime * 1 );
+              maxtime = Math.max( maxtime, mytime * 1 );
+
+              timelayers.push({
+                geo: movemarker,
+                ll: mycoord,
+                time: mytime
+              });
+            }
+            updateTimeline();
+            fileindex++;
+            if(fileindex < files.length){
+              return reader.readAsText(files[fileindex]);
+            }
+            else{
+              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+              return;
+            }
+          }
+          var placemarks = xmlf.getElementsByTagName("Placemark");
+          if(!placemarks.length){
+            // no KML Placemarks, go to GPX reader
+            var pts = xmlf.getElementsByTagName("trkpt");
+            var times = xmlf.getElementsByTagName("time");
+            if(pts.length && times.length && pts.length == times.length){
+              var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+              for(var p=0;p<pts.length;p++){
+                var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
+
+                maxlat = Math.max(maxlat, mycoord.lat);
+                maxlng = Math.max(maxlng, mycoord.lng);
+                minlat = Math.min(minlat, mycoord.lat);
+                minlng = Math.min(minlng, mycoord.lng);              
+
+                var mytime = new Date( $(times[p]).text() );
+                mintime = Math.min( mintime, mytime * 1 );
+                maxtime = Math.max( maxtime, mytime * 1 );
+              
+                timelayers.push({
+                  geo: movemarker,
+                  ll: mycoord,
+                  time: mytime
+                });
+              }
+            }
+            updateTimeline();
+            fileindex++;
+            if(fileindex < files.length){
+              return reader.readAsText(files[fileindex]);
+            }
+            else{
+              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+              return;
+            }
+          }
+          // KML loading
           for(var i=0;i<placemarks.length;i++){
             var inkml = placemarks[i];
             var whens = inkml.getElementsByTagName("when");
@@ -385,4 +464,10 @@ function kmlmap(placemark){
     }
   }
   return geos;
+}
+function replaceAll(src, oldr, newr){
+  while(src.indexOf(oldr) > -1){
+    src = src.replace(oldr, newr);
+  }
+  return src;
 }
