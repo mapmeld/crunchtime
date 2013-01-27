@@ -428,7 +428,9 @@ function jsonmap(feature, layer){
   }
   else if(typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
     // no start or end, so just add it to the map
-    layer.setStyle({ clickable: false });
+    if(typeof layer.setStyle == 'function'){
+      layer.setStyle({ clickable: false });
+    }
     map.addLayer(layer);
   }
   else{
