@@ -2,7 +2,9 @@
 
 Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
-Currently supports:
+<img src="http://i.imgur.com/wEBrQS6.png"/>
+
+## Currently supports:
 
 * GPX files
 
