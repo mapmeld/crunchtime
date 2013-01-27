@@ -378,6 +378,14 @@ function jsonmap(feature, layer){
       maxlng = Math.max(maxlng, pts[p][0]);
     }
   }
+  else if(typeof feature.geometry.coordinates[0] == "number"){
+    // GeoJSON point
+    var pt = feature.geometry.coordinates;
+    minlat = Math.min(minlat, pt[1]);
+    maxlat = Math.max(maxlat, pt[1]);
+    minlng = Math.min(minlng, pt[0]);
+    maxlng = Math.max(maxlng, pt[0]);
+  }
   
   // read any start and end times
   if(typeof feature.properties.start != 'undefined'){
