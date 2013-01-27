@@ -106,6 +106,7 @@ var dropFile = function(e){
               lines = lines[0].split('\r');
             }
             var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+            var moveline = [ ];
             for(var i=0;i<lines.length;i++){
               var rawline = replaceAll(lines[i],'"','').split(',');
               // skip some metadata
@@ -113,6 +114,7 @@ var dropFile = function(e){
                 continue;
               }
               var mycoord = new L.LatLng( rawline[2] * 1.0, rawline[3] * 1.0 );
+              moveline.push(mycoord);
               maxlat = Math.max(maxlat, mycoord.lat);
               maxlng = Math.max(maxlng, mycoord.lng);
               minlat = Math.min(minlat, mycoord.lat);
@@ -128,6 +130,7 @@ var dropFile = function(e){
                 time: mytime
               });
             }
+            map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
             updateTimeline();
             fileindex++;
             if(fileindex < files.length){
@@ -143,11 +146,12 @@ var dropFile = function(e){
             // no KML Placemarks, go to GPX reader
             var pts = xmlf.getElementsByTagName("trkpt");
             var times = xmlf.getElementsByTagName("time");
+            var moveline = [ ];
             if(pts.length && times.length && pts.length == times.length){
               var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
               for(var p=0;p<pts.length;p++){
                 var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
-
+                moveline.push(mycoord);
                 maxlat = Math.max(maxlat, mycoord.lat);
                 maxlng = Math.max(maxlng, mycoord.lng);
                 minlat = Math.min(minlat, mycoord.lat);
@@ -164,6 +168,7 @@ var dropFile = function(e){
                 });
               }
             }
+            map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
             updateTimeline();
             fileindex++;
             if(fileindex < files.length){
@@ -182,12 +187,13 @@ var dropFile = function(e){
             if(whens.length && !coords.length){
               coords = inkml.getElementsByTagName("gx:coord");
             }
+            var moveline = [ ];
             if(whens.length && coords.length && whens.length == coords.length){
               var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
               for(var c=0;c<coords.length;c++){
                 var rawcoord = $(coords[c]).text().split(" ");
                 var mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
-
+                moveline.push(mycoord);
                 maxlat = Math.max(maxlat, mycoord.lat);
                 maxlng = Math.max(maxlng, mycoord.lng);
                 minlat = Math.min(minlat, mycoord.lat);
@@ -203,6 +209,7 @@ var dropFile = function(e){
                   time: mytime
                 });
               }
+              map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
             }
             else{
               // check for <begin> and <end> tags
