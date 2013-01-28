@@ -1,4 +1,5 @@
 var firstfile = true;
+var lasttimelength = 0;
 
 var map, playStep, fileindex;
 var mytime = new Date();
@@ -339,9 +340,10 @@ var dropFile = function(e){
 };
 
 function savemap(){
-  if(!timelayers.length){
+  if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){
     return;
   }
+  lasttimelength = timelayers.length + fixlayers.length;
 
   var saver = {
     timed: [ ],
