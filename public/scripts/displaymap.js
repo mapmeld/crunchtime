@@ -408,8 +408,8 @@ function savemap(){
       saver.fixed.geojson.push( fixlayers[t] );
     }
   }
-  $.postJSON('/map', { json: JSON.stringify(saver) }, function(data){
-    console.log(data);
+  $.post('/map', { json: JSON.stringify(saver) }, function(data){
+    //console.log(data);
     history.pushState(null, null, '/map/' + data.outcome);
   });
 }
