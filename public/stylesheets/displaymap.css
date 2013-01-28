@@ -1,0 +1,69 @@
+html, body{
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+body {
+  margin:0;
+  padding:0;
+  font-family: arial, sansserif;
+  background-color: #f0f0f0;
+}
+#map {
+  height:85%;
+  overflow:none;
+  position:absolute;
+  top:14%;
+  bottom:0;
+  width:100%;
+  left:0;
+  border-top: 6px solid #444;
+}
+.span2{
+  width: 11%;
+}
+.marker{
+  vertical-align:middle;
+  width: 26px;
+  margin: 8px;
+  display: inline-block;
+}
+ol li{
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+ul li{
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+#topbar{
+  padding-bottom: 20px;
+  width: 100%;
+  height: 15%;
+  overflow: none;
+}
+#slidebar {
+  width: 50%;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 24%;
+  margin-right: 24%;
+}
+#slidebar a {
+  font-size:10px;
+  text-decoration:none;
+  display: none;
+}
+#slidebar a.ui-slider-handle{
+  display: block;
+}
+.output, .instructions{
+  font-family: verdana, sans-serif;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 5px;
+}
+.output{
+  display: none;
+}
