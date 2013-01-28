@@ -105,6 +105,7 @@ $(document).ready(function(){
       // static GeoJSON
       L.geoJson( { "type": "FeatureCollection", "features": fixed.geojson } , { onEachFeature: jsonmap });
     }
+    // static KML, currently unsupported
     //for(var t=0;t<fixed.kml.length;t++){
     //  // catch minlat, maxlat, minlng, maxlng, mintime, maxtime
     //}
@@ -341,6 +342,7 @@ var dropFile = function(e){
 
 function savemap(){
   if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){
+    // if there is no geotime data or additional points, the map doesn't save
     return;
   }
   lasttimelength = timelayers.length + fixlayers.length;
@@ -398,7 +400,7 @@ function savemap(){
   }
   for(var t=0;t<fixlayers.length;t++){
     if(typeof fixlayers[t] == 'array'){
-      // static KML
+      // static KML from layers, currently unsupported
       //saver.fixed.kml.push();
     }
     else{
