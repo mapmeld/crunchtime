@@ -79,7 +79,7 @@ $(document).ready(function(){
           maxtime = Math.max(maxtime, timed[t].end);
           timelyr.end = new Date( timed[t].end );
         }
-        if(typeof timed[t].coords[0] == 'array'){
+        if(typeof timed[t].coords[0].length != 'undefined'){
           // Polygon
           for(var c=0;c<timed[t].coords.length;c++){
             maxlat = Math.max(maxlat, timed[t].coords[c][0]);
@@ -399,7 +399,7 @@ function savemap(){
     }
   }
   for(var t=0;t<fixlayers.length;t++){
-    if(typeof fixlayers[t] == 'array'){
+    if(typeof fixlayers[t].length != 'undefined'){
       // static KML from layers, currently unsupported
       //saver.fixed.kml.push();
     }
@@ -410,7 +410,7 @@ function savemap(){
   }
   $.postJSON('/map', { json: JSON.stringify(saver) }, function(data){
     console.log(data);
-    // window.history -> '/map/' + data.outcome;
+    history.pushState(null, null, '/map/' + data.outcome);
   });
 }
 
