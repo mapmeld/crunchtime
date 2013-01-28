@@ -53,6 +53,7 @@ $(document).ready(function(){
       if(typeof timed[t].times != 'undefined'){
         // moving point
         var movemarker = new L.marker(new L.LatLng(0,0), { clickable: false });
+        var moveline = [ ];
         for(var c=0;c<timed[t].coords.length;c++){
           maxlat = Math.max(maxlat, timed[t].coords[c][0]);
           maxlng = Math.max(maxlng, timed[t].coords[c][1]);
@@ -60,12 +61,14 @@ $(document).ready(function(){
           minlng = Math.min(minlng, timed[t].coords[c][1]);
           mintime = Math.min(mintime, timed[t].times[c]);
           maxtime = Math.max(maxtime, timed[t].times[c]);
+          moveline.push(new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ));
           timelayers.push({
             geo: movemarker,
             ll: new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ),
             time: new Date( timed[t].times[c] )
           });
         }
+        map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
       }
       else{
         // geo with start and/or end
