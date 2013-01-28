@@ -48,6 +48,7 @@ $(document).ready(function(){
   if(myjson.length){
     firstfile = false;
     myjson = $.parseJSON(myjson);
+    var timed = myjson.timed;
     for(var t=0;t<timed.length;t++){
       if(typeof timed[t].times != 'undefined'){
         // moving point
@@ -101,6 +102,7 @@ $(document).ready(function(){
         timelayers.push(timelyr);
       }
     }
+    var fixed = myjson.fixed;
     if(fixed.geojson.length){
       // static GeoJSON
       L.geoJson( { "type": "FeatureCollection", "features": fixed.geojson } , { onEachFeature: jsonmap });
