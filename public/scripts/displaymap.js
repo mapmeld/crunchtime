@@ -562,7 +562,7 @@ function jsonmap(feature, layer){
     if(typeof layer.setStyle == 'function'){
       layer.setStyle({ clickable: false });
     }
-    fixlayers.push(feature);
+    fixlayers.push({ properties: feature.properties, geometry: feature.geometry, type: feature.type });
     map.addLayer(layer);
   }
   else{
