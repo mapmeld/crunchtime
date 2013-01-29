@@ -41,7 +41,7 @@ $(document).ready(function(){
         playStep = null;
       }
       displayTime(ui.value);
-      console.log('slider');
+      //console.log('slider');
       geotimes(ui.value);
     }
   });
@@ -400,7 +400,7 @@ function geotimes(nowtime){
         if( coordTime && lastCoord ){
           // there was a marker before this marker, but it never read a time after the timeline
           // currently we drop these markers
-          console.log('marker dropped');
+          //console.log('marker dropped');
           map.removeLayer( coordTime );
         }
         
