@@ -46,13 +46,12 @@ $(document).ready(function(){
     }
   });
   
-    // load default GeoJSON from Chicago
-    $.getJSON('/geos/chicago.geojson', function(gj){
-      L.geoJson(gj, { onEachFeature: jsonmap });
-      map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-      updateTimeline();
-    });
-
+  // load default GeoJSON from Chicago
+  $.getJSON('chicago.geojson', function(gj){
+    L.geoJson(gj, { onEachFeature: jsonmap });
+    map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+    updateTimeline();
+  });
 });
 
 var displayTime = function(t){
@@ -138,7 +137,6 @@ var dropFile = function(e){
           }
           else{
             map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            savemap();
             return;
           }
         }
@@ -177,7 +175,6 @@ var dropFile = function(e){
           }
           else{
             map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            savemap();
             return;
           }
         }
@@ -277,7 +274,6 @@ var dropFile = function(e){
         }
         else{
           map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-          savemap();
           return;
         }
       }
@@ -292,87 +288,12 @@ var dropFile = function(e){
       }
       else{
         map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-        savemap();
       }
     };
     fileindex = 0;
     reader.readAsText(files[0]);
   }
 };
-
-function savemap(){
-  if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){
-    // if there is no geotime data or additional points, the map doesn't save
-    return;
-  }
-  lasttimelength = timelayers.length + fixlayers.length;
-
-  var saver = {
-    timed: [ ],
-    fixed: {
-      kml: [ ],
-      geojson: [ ]
-    }
-  };
-  var movemarker = null;
-  for(var t=0;t<timelayers.length;t++){
-    if(typeof timelayers[t].ll != 'undefined'){
-      // Moving Point
-      if(movemarker && movemarker == timelayers[t].geo){
-        // continue an existing Moving Point
-        saver.timed[ saver.timed.length-1 ].coords.push( [ timelayers[t].ll.lat, timelayers[t].ll.lng ] );
-        saver.timed[ saver.timed.length-1 ].times.push( timelayers[t].time * 1 );
-      }
-      else{
-        // init a Moving Point
-        movemarker = timelayers[t].geo;
-        saver.timed.push({
-          coords: [
-            [ timelayers[t].ll.lat, timelayers[t].ll.lng ]
-          ],
-          times: [ timelayers[t].time * 1 ]
-        });
-      }
-    }
-    else{
-      // feature with start and/or end
-      var starter = { coords: [ ] };
-      if(typeof timelayers[t].start != 'undefined'){
-        starter.start = timelayers[t].start * 1;
-      }
-      if(typeof timelayers[t].end != 'undefined'){
-        starter.end = timelayers[t].end * 1;
-      }
-      
-      if(typeof timelayers[t].geo.getLatLngs == 'function'){
-        // Polygon
-        var mypts = timelayers[t].geo.getLatLngs();
-        for(var pt=0;pt<mypts.length;pt++){
-          starter.coords.push([ mypts[pt].lat, mypts[pt].lng ]);
-        }
-      }
-      else{
-        // Point
-        starter.coords = [ timelayers[t].geo.getLatLng().lat, timelayers[t].geo.getLatLng().lng ];
-      }
-      saver.timed.push(starter);
-    }
-  }
-  for(var t=0;t<fixlayers.length;t++){
-    if(typeof fixlayers[t].length != 'undefined'){
-      // static KML from layers, currently unsupported
-      //saver.fixed.kml.push();
-    }
-    else{
-      // static GeoJSON
-      saver.fixed.geojson.push( fixlayers[t] );
-    }
-  }
-  $.post('/map', { json: JSON.stringify(saver) }, function(data){
-    //console.log(data);
-    history.pushState(null, null, '/map/' + data.outcome);
-  });
-}
 
 function updateTimeline(){
   if(maxtime > mintime && !firstfile){
@@ -574,10 +495,4 @@ function kmlmap(placemark){
     }
   }
   return geos;
-}
-function replaceAll(src, oldr, newr){
-  while(src.indexOf(oldr) > -1){
-    src = src.replace(oldr, newr);
-  }
-  return src;
 }
