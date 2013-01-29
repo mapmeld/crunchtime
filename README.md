@@ -1,6 +1,12 @@
 # Crunchtime
 
-Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
+1) Drop time-enabled map files onto the page.
+
+2) Copy the URL
+
+3) Repeat
+
+Accepts multiple files, multiple formats, and combining multiple formats.
 
 <img src="http://i.imgur.com/wEBrQS6.png"/>
 
@@ -8,7 +14,9 @@ Experimental timeline-map setup. Drop time-enabled map files onto the page. Acce
 
 * GPX files
 
-* KMLs using &lt;coord&gt; and &lt;when&gt; tags
+* KML &lt;Track&gt;s using &lt;coord&gt; and &lt;when&gt; tags
+
+* &lt;TimeStamp&gt;&lt;when&gt; in KML
 
 * KMLs using &lt;begin&gt; and &lt;end&gt; tags
 
@@ -23,8 +31,6 @@ Experimental timeline-map setup. Drop time-enabled map files onto the page. Acce
 Will research:
 
 * Custom CSV / TSV files
-
-* &lt;Track&gt; in KML
 
 * KML geometry support beyond Point and Polygon
 
