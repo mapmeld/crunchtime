@@ -258,15 +258,28 @@ var dropFile = function(e){
           var inkml = placemarks[i];
           var whens = inkml.getElementsByTagName("when");
           var coords = inkml.getElementsByTagName("coord");
+          var spacesep = true;
           if(whens.length && !coords.length){
             coords = inkml.getElementsByTagName("gx:coord");
+          }
+          if(whens.length && !coords.length){
+            // use of <TimeStamp><when>
+            spacesep = false;
+            coords = inkml.getElementsByTagName("coordinates");
           }
           var moveline = [ ];
           if(whens.length && coords.length && whens.length == coords.length){
             var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
             for(var c=0;c<coords.length;c++){
-              var rawcoord = $(coords[c]).text().split(" ");
-              var mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
+              var mycoord;
+              if(spacesep)
+                var rawcoord = $(coords[c]).text().split(" ");
+                mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
+              }
+              else{
+                var rawcoord = $(coords[c]).text().split(",");
+                mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
+              }
               moveline.push(mycoord);
               maxlat = Math.max(maxlat, mycoord.lat);
               maxlng = Math.max(maxlng, mycoord.lng);
