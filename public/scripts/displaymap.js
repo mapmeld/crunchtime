@@ -272,7 +272,7 @@ var dropFile = function(e){
             var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
             for(var c=0;c<coords.length;c++){
               var mycoord;
-              if(spacesep)
+              if(spacesep){
                 var rawcoord = $(coords[c]).text().split(" ");
                 mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
               }
