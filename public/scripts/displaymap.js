@@ -274,11 +274,11 @@ var dropFile = function(e){
               var mycoord;
               if(spacesep){
                 var rawcoord = $(coords[c]).text().split(" ");
-                mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
+                mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
               }
               else{
                 var rawcoord = $(coords[c]).text().split(",");
-                mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
+                mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
               }
               moveline.push(mycoord);
               maxlat = Math.max(maxlat, mycoord.lat);
