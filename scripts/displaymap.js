@@ -1,5 +1,5 @@
-var DEBUG = false;
 var firstfile = true;
+var lasttimelength = 0;
 
 var map, playStep, fileindex;
 var mytime = new Date();
@@ -10,13 +10,12 @@ var minlat = 90;
 var maxlng = -180;
 var minlng = 180;
 var timelayers = [ ];
+var fixlayers = [ ];
 
 $(document).ready(function(){
   // make a Leaflet map
   map = new L.Map('map');
   map.attributionControl.setPrefix('');
-  //L.control.pan().addTo(map);
-  //L.control.zoom().addTo(map);
   var terrain = 'http://{s}.tiles.mapbox.com/v3/mapmeld.map-ofpv1ci4/{z}/{x}/{y}.png';
   var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors, Tiles &copy; 2013 MapBox';
   terrainLayer = new L.TileLayer(terrain, {maxZoom: 15, attribution: terrainAttrib});
@@ -42,16 +41,18 @@ $(document).ready(function(){
         playStep = null;
       }
       displayTime(ui.value);
+      console.log('slider');
       geotimes(ui.value);
     }
   });
   
-  // load default GeoJSON from Chicago
-  $.getJSON('chicago.geojson', function(gj){
-    L.geoJson(gj, { onEachFeature: jsonmap });
-    map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-    updateTimeline();
-  });
+    // load default GeoJSON from Chicago
+    $.getJSON('/geos/chicago.geojson', function(gj){
+      L.geoJson(gj, { onEachFeature: jsonmap });
+      map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+      updateTimeline();
+    });
+
 });
 
 var displayTime = function(t){
@@ -86,44 +87,148 @@ var dropFile = function(e){
     }
     firstfile = false;
 
-    //for(var i=0;i<files.length;i++){
-      var reader = new FileReader();
-      reader.onload = function(e){
-        var injson;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var injson;
+      try{
+        injson = $.parseJSON( e.target.result );
+      }
+      catch(err){
+        // XML-based (KML, GPX)
+        var xmlf;
         try{
-          injson = $.parseJSON( e.target.result );
+          xmlf = $.parseXML( e.target.result );
         }
         catch(err){
-          // XML-based (KML, GPX)
-          var xmlf;
-          try{
-            xmlf = $.parseXML( e.target.result );
+          // neither JSON or XML-based; go for CSV
+          var lines = e.target.result.split('\n');
+          if(lines.length == 1){
+            lines = lines[0].split('\r');
           }
-          catch(err){
-            // neither JSON or XML-based; go for CSV
-            var lines = e.target.result.split('\n');
-            if(lines.length == 1){
-              lines = lines[0].split('\r');
+          var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+          var moveline = [ ];
+          for(var i=0;i<lines.length;i++){
+            var rawline = replaceAll(lines[i],'"','').split(',');
+            // skip some metadata
+            if(rawline.length == 1 || isNaN( rawline[0] * 1) ){
+              continue;
             }
+            var mycoord = new L.LatLng( rawline[2] * 1.0, rawline[3] * 1.0 );
+            moveline.push(mycoord);
+            maxlat = Math.max(maxlat, mycoord.lat);
+            maxlng = Math.max(maxlng, mycoord.lng);
+            minlat = Math.min(minlat, mycoord.lat);
+            minlng = Math.min(minlng, mycoord.lng);              
+
+            var mytime = new Date( rawline[8] );
+            mintime = Math.min( mintime, mytime * 1 );
+            maxtime = Math.max( maxtime, mytime * 1 );
+
+            timelayers.push({
+              geo: movemarker,
+              ll: mycoord,
+              time: mytime
+            });
+          }
+          map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+          updateTimeline();
+          fileindex++;
+          if(fileindex < files.length){
+            return reader.readAsText(files[fileindex]);
+          }
+          else{
+            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+            savemap();
+            return;
+          }
+        }
+        var placemarks = xmlf.getElementsByTagName("Placemark");
+        if(!placemarks.length){
+          // no KML Placemarks, go to GPX reader
+          var pts = xmlf.getElementsByTagName("trkpt");
+          var times = xmlf.getElementsByTagName("time");
+          var moveline = [ ];
+          if(pts.length && times.length && pts.length == times.length){
             var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-            var moveline = [ ];
-            for(var i=0;i<lines.length;i++){
-              var rawline = replaceAll(lines[i],'"','').split(',');
-              // skip some metadata
-              if(rawline.length == 1 || isNaN( rawline[0] * 1) ){
-                continue;
-              }
-              var mycoord = new L.LatLng( rawline[2] * 1.0, rawline[3] * 1.0 );
+            for(var p=0;p<pts.length;p++){
+              var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
               moveline.push(mycoord);
               maxlat = Math.max(maxlat, mycoord.lat);
               maxlng = Math.max(maxlng, mycoord.lng);
               minlat = Math.min(minlat, mycoord.lat);
               minlng = Math.min(minlng, mycoord.lng);              
 
-              var mytime = new Date( rawline[8] );
+              var mytime = new Date( $(times[p]).text() );
               mintime = Math.min( mintime, mytime * 1 );
               maxtime = Math.max( maxtime, mytime * 1 );
+              
+              timelayers.push({
+                geo: movemarker,
+                ll: mycoord,
+                time: mytime
+              });
+            }
+          }
+          map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+          updateTimeline();
+          fileindex++;
+          if(fileindex < files.length){
+            return reader.readAsText(files[fileindex]);
+          }
+          else{
+            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+            savemap();
+            return;
+          }
+        }
+        // KML loading
+        var oldmarker = new L.marker(new L.LatLng(0,0), { clickable: false });
+        var oldmoveline = [ ];
+        for(var i=0;i<placemarks.length;i++){
+          var inkml = placemarks[i];
+          var whens = inkml.getElementsByTagName("when");
+          var coords = inkml.getElementsByTagName("coord");
+          if(whens.length && !coords.length){
+            coords = inkml.getElementsByTagName("gx:coord");
+            if(!coords.length){
+              // old-style <Placemark><TimeSpan><when> syntax
+              coords = inkml.getElementsByTagName("coordinates");
+              var rawcoord = $(coords[0]).text().split(",");
+              var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
+              oldmoveline.push(mycoord);
+              maxlat = Math.max(maxlat, mycoord.lat);
+              maxlng = Math.max(maxlng, mycoord.lng);
+              minlat = Math.min(minlat, mycoord.lat);
+              minlng = Math.min(minlng, mycoord.lng);              
 
+              var mytime = new Date( $(whens[0]).text() );
+              mintime = Math.min( mintime, mytime * 1 );
+              maxtime = Math.max( maxtime, mytime * 1 );
+              
+              timelayers.push({
+                geo: oldmarker,
+                ll: mycoord,
+                time: mytime
+              });
+              continue;
+            }
+          }
+          var moveline = [ ];
+          if(whens.length && coords.length && whens.length == coords.length){
+            var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+            for(var c=0;c<coords.length;c++){
+              var rawcoord = $(coords[c]).text().split(" ");
+              var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
+              moveline.push(mycoord);
+              maxlat = Math.max(maxlat, mycoord.lat);
+              maxlng = Math.max(maxlng, mycoord.lng);
+              minlat = Math.min(minlat, mycoord.lat);
+              minlng = Math.min(minlng, mycoord.lng);              
+
+              var mytime = new Date( $(whens[c]).text() );
+              mintime = Math.min( mintime, mytime * 1 );
+              maxtime = Math.max( maxtime, mytime * 1 );
+              
               timelayers.push({
                 geo: movemarker,
                 ll: mycoord,
@@ -131,146 +236,143 @@ var dropFile = function(e){
               });
             }
             map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
-            updateTimeline();
-            fileindex++;
-            if(fileindex < files.length){
-              return reader.readAsText(files[fileindex]);
-            }
-            else{
-              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-              return;
-            }
-          }
-          var placemarks = xmlf.getElementsByTagName("Placemark");
-          if(!placemarks.length){
-            // no KML Placemarks, go to GPX reader
-            var pts = xmlf.getElementsByTagName("trkpt");
-            var times = xmlf.getElementsByTagName("time");
-            var moveline = [ ];
-            if(pts.length && times.length && pts.length == times.length){
-              var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-              for(var p=0;p<pts.length;p++){
-                var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
-                moveline.push(mycoord);
-                maxlat = Math.max(maxlat, mycoord.lat);
-                maxlng = Math.max(maxlng, mycoord.lng);
-                minlat = Math.min(minlat, mycoord.lat);
-                minlng = Math.min(minlng, mycoord.lng);              
-
-                var mytime = new Date( $(times[p]).text() );
-                mintime = Math.min( mintime, mytime * 1 );
-                maxtime = Math.max( maxtime, mytime * 1 );
-              
-                timelayers.push({
-                  geo: movemarker,
-                  ll: mycoord,
-                  time: mytime
-                });
-              }
-            }
-            map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
-            updateTimeline();
-            fileindex++;
-            if(fileindex < files.length){
-              return reader.readAsText(files[fileindex]);
-            }
-            else{
-              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-              return;
-            }
-          }
-          // KML loading
-          for(var i=0;i<placemarks.length;i++){
-            var inkml = placemarks[i];
-            var whens = inkml.getElementsByTagName("when");
-            var coords = inkml.getElementsByTagName("coord");
-            if(whens.length && !coords.length){
-              coords = inkml.getElementsByTagName("gx:coord");
-            }
-            var moveline = [ ];
-            if(whens.length && coords.length && whens.length == coords.length){
-              var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-              for(var c=0;c<coords.length;c++){
-                var rawcoord = $(coords[c]).text().split(" ");
-                var mycoord = new L.LatLng( rawcoord[1], rawcoord[0] );
-                moveline.push(mycoord);
-                maxlat = Math.max(maxlat, mycoord.lat);
-                maxlng = Math.max(maxlng, mycoord.lng);
-                minlat = Math.min(minlat, mycoord.lat);
-                minlng = Math.min(minlng, mycoord.lng);              
-
-                var mytime = new Date( $(whens[c]).text() );
-                mintime = Math.min( mintime, mytime * 1 );
-                maxtime = Math.max( maxtime, mytime * 1 );
-              
-                timelayers.push({
-                  geo: movemarker,
-                  ll: mycoord,
-                  time: mytime
-                });
-              }
-              map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
-            }
-            else{
-              // check for <begin> and <end> tags
-              var begin = inkml.getElementsByTagName("begin");
-              var end = inkml.getElementsByTagName("end");
-              if(begin.length || end.length){
-                // KML placemark with a begin and/or end
-                var timefeature = { };
-                if(begin.length){
-                  timefeature.start = new Date( $(begin[0]).text() );
-                  mintime = Math.min(mintime, timefeature.start * 1);
-                  maxtime = Math.max(maxtime, timefeature.start * 1);
-                }
-                if(end.length){
-                  timefeature.end = new Date( $(end[0]).text() );
-                  mintime = Math.min(mintime, timefeature.end * 1);
-                  maxtime = Math.max(maxtime, timefeature.end * 1);
-                }
-                timefeature.geo = kmlmap(inkml);
-                timelayers.push( timefeature );
-              }
-              else{
-                // KML object without a time
-                var maps = kmlmap(inkml);
-                for(var m=0;m<maps.length;m++){
-                  map.addLayer( maps[m] );
-                }
-              }
-            }
-            //map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            updateTimeline();
-          }
-          fileindex++;
-          if(fileindex < files.length){
-            return reader.readAsText(files[fileindex]);
           }
           else{
-            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            return;
+            // check for <begin> and <end> tags
+            var begin = inkml.getElementsByTagName("begin");
+            var end = inkml.getElementsByTagName("end");
+            if(begin.length || end.length){
+              // KML placemark with a begin and/or end
+              var timefeature = { };
+              if(begin.length){
+                timefeature.start = new Date( $(begin[0]).text() );
+                mintime = Math.min(mintime, timefeature.start * 1);
+                maxtime = Math.max(maxtime, timefeature.start * 1);
+              }
+              if(end.length){
+                timefeature.end = new Date( $(end[0]).text() );
+                mintime = Math.min(mintime, timefeature.end * 1);
+                maxtime = Math.max(maxtime, timefeature.end * 1);
+              }
+              timefeature.geo = kmlmap(inkml);
+              timelayers.push( timefeature );
+            }
+            else{
+              // KML object without a time
+              var maps = kmlmap(inkml);
+              for(var m=0;m<maps.length;m++){
+                map.addLayer( maps[m] );
+                fixlayers.push( maps );
+              }
+            }
           }
         }
-        L.geoJson(injson, {
-          /* style: function(feature){ }, */
-          onEachFeature: jsonmap
-        });
-        //map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        if(oldmoveline.length){
+          map.addLayer(new L.polyline(oldmoveline, { clickable: false }));
+        }
         updateTimeline();
-        
         fileindex++;
         if(fileindex < files.length){
-          reader.readAsText(files[fileindex]);
+          return reader.readAsText(files[fileindex]);
         }
         else{
           map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+          savemap();
+          return;
         }
-      };
-      fileindex = 0;
-      reader.readAsText(files[0]);
-    //}
+      }
+      L.geoJson(injson, {
+        onEachFeature: jsonmap
+      });
+      updateTimeline();
+        
+      fileindex++;
+      if(fileindex < files.length){
+        reader.readAsText(files[fileindex]);
+      }
+      else{
+        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        savemap();
+      }
+    };
+    fileindex = 0;
+    reader.readAsText(files[0]);
   }
 };
+
+function savemap(){
+  if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){
+    // if there is no geotime data or additional points, the map doesn't save
+    return;
+  }
+  lasttimelength = timelayers.length + fixlayers.length;
+
+  var saver = {
+    timed: [ ],
+    fixed: {
+      kml: [ ],
+      geojson: [ ]
+    }
+  };
+  var movemarker = null;
+  for(var t=0;t<timelayers.length;t++){
+    if(typeof timelayers[t].ll != 'undefined'){
+      // Moving Point
+      if(movemarker && movemarker == timelayers[t].geo){
+        // continue an existing Moving Point
+        saver.timed[ saver.timed.length-1 ].coords.push( [ timelayers[t].ll.lat, timelayers[t].ll.lng ] );
+        saver.timed[ saver.timed.length-1 ].times.push( timelayers[t].time * 1 );
+      }
+      else{
+        // init a Moving Point
+        movemarker = timelayers[t].geo;
+        saver.timed.push({
+          coords: [
+            [ timelayers[t].ll.lat, timelayers[t].ll.lng ]
+          ],
+          times: [ timelayers[t].time * 1 ]
+        });
+      }
+    }
+    else{
+      // feature with start and/or end
+      var starter = { coords: [ ] };
+      if(typeof timelayers[t].start != 'undefined'){
+        starter.start = timelayers[t].start * 1;
+      }
+      if(typeof timelayers[t].end != 'undefined'){
+        starter.end = timelayers[t].end * 1;
+      }
+      
+      if(typeof timelayers[t].geo.getLatLngs == 'function'){
+        // Polygon
+        var mypts = timelayers[t].geo.getLatLngs();
+        for(var pt=0;pt<mypts.length;pt++){
+          starter.coords.push([ mypts[pt].lat, mypts[pt].lng ]);
+        }
+      }
+      else{
+        // Point
+        starter.coords = [ timelayers[t].geo.getLatLng().lat, timelayers[t].geo.getLatLng().lng ];
+      }
+      saver.timed.push(starter);
+    }
+  }
+  for(var t=0;t<fixlayers.length;t++){
+    if(typeof fixlayers[t].length != 'undefined'){
+      // static KML from layers, currently unsupported
+      //saver.fixed.kml.push();
+    }
+    else{
+      // static GeoJSON
+      saver.fixed.geojson.push( fixlayers[t] );
+    }
+  }
+  $.post('/map', { json: JSON.stringify(saver) }, function(data){
+    //console.log(data);
+    history.pushState(null, null, '/map/' + data.outcome);
+  });
+}
 
 function updateTimeline(){
   if(maxtime > mintime && !firstfile){
@@ -294,10 +396,11 @@ function geotimes(nowtime){
       // moving coordinate-time marker
       if(!coordTime || coordTime != timelayers[t].geo){
         // on the first coordinate-time pair read for a marker:
-
+        //console.log('first pair');
         if( coordTime && lastCoord ){
           // there was a marker before this marker, but it never read a time after the timeline
           // currently we drop these markers
+          console.log('marker dropped');
           map.removeLayer( coordTime );
         }
         
@@ -415,22 +518,12 @@ function jsonmap(feature, layer){
     maxtime = Math.max( maxtime, timefeature.end * 1 );
   }
             
-  if(DEBUG && typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
-    // no start or end. Add a random date in DEBUG mode
-    timefeature.start = new Date( "January 10, " + Math.round(Math.random() * 100 + 1900) );
-    timefeature.end = new Date( timefeature.start * 1 + Math.round(Math.random() * 20 * 365 * 24 * 60 * 60 * 1000) );
-
-    mintime = Math.min( mintime, timefeature.start * 1 );
-    maxtime = Math.max( maxtime, timefeature.start * 1 );
-    mintime = Math.min( mintime, timefeature.end * 1 );
-    maxtime = Math.max( maxtime, timefeature.end * 1 );
-    timelayers.push(timefeature);
-  }
-  else if(typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
+  if(typeof timefeature.start == 'undefined' && typeof timefeature.end == 'undefined'){
     // no start or end, so just add it to the map
     if(typeof layer.setStyle == 'function'){
       layer.setStyle({ clickable: false });
     }
+    fixlayers.push({ properties: feature.properties, geometry: feature.geometry, type: feature.type });
     map.addLayer(layer);
   }
   else{
