@@ -146,7 +146,7 @@ $(document).ready(function(){
 });
 
 var displayTime = function(t){
-  $("#readtime").text( (new Date(t)).toTimeString() );
+  $("#readtime").text( (new Date(t)).toUTCString() );
 };
 
 var blockHandler = function(e){
