@@ -5,6 +5,7 @@ var map, playStep, fileindex;
 var mytime = new Date();
 var mintime = (new Date("January 1, 5000")) * 1;
 var maxtime = (new Date("January 1, 100")) * 1;
+var settime = null;
 var maxlat = -90;
 var minlat = 90;
 var maxlng = -180;
@@ -40,6 +41,7 @@ $(document).ready(function(){
         window.clearInterval(playStep);
         playStep = null;
       }
+      settime = ui.value;
       displayTime(ui.value);
       geotimes(ui.value);
     }
@@ -125,10 +127,26 @@ $(document).ready(function(){
       updateTimeline();
     });
   }
+  
+  // add play button timer
+  playStep = null;
+  $(".btn-success").on("click", function(){
+    if(!playStep){
+      if(!settime){
+        settime = mintime;
+      }
+      playStep = setInterval(function(){
+        settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
+        $("#slidebar").slider({ value: settime });
+        displayTime(settime);
+        geotimes(settime);
+      }, 50);
+    }
+  });
 });
 
 var displayTime = function(t){
-  $("#readtime").text( (new Date(t)).toUTCString() );
+  $("#readtime").text( (new Date(t)).toTimeString() );
 };
 
 var blockHandler = function(e){

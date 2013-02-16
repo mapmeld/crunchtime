@@ -1,6 +1,7 @@
 head
   meta(name="viewport", content="initial-scale=1.0, user-scalable=no")
   title Crunchiertime
+  link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css", type="text/css")
   link(rel="stylesheet", href="/stylesheets/leaflet.css", type="text/css")
   // [if lte IE 8]
     link(rel="stylesheet", href="/stylesheets/leaflet.ie.css", type="text/css")
@@ -19,4 +20,8 @@ body
     div.output
       span#readtime.output
     div#slidebar
+    div#controls.output
+      a.btn.btn-success(href="#")
+        i.icon-play-circle.icon-white
+        span Play
   div#map
