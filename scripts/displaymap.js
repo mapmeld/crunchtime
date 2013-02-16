@@ -9,6 +9,7 @@ var maxlat = -90;
 var minlat = 90;
 var maxlng = -180;
 var minlng = 180;
+var settime = null;
 var timelayers = [ ];
 var fixlayers = [ ];
 
@@ -40,6 +41,7 @@ $(document).ready(function(){
         window.clearInterval(playStep);
         playStep = null;
       }
+      settime = ui.value;
       displayTime(ui.value);
       //console.log('slider');
       geotimes(ui.value);
@@ -52,10 +54,26 @@ $(document).ready(function(){
     map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
     updateTimeline();
   });
+
+  // add play button timer
+  playStep = null;
+  $(".btn-success").on("click", function(){
+    if(!playStep){
+      if(!settime){
+        settime = mintime;
+      }
+      playStep = setInterval(function(){
+        settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
+        $("#slidebar").slider({ value: settime });
+        displayTime(settime);
+        geotimes(settime);
+      }, 50);
+    }
+  });
 });
 
 var displayTime = function(t){
-  $("#readtime").text( (new Date(t)).toUTCString() );
+  $("#readtime").text( (new Date(t)).toTimeString() );
 };
 
 var blockHandler = function(e){
