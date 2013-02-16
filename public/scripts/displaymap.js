@@ -555,6 +555,10 @@ function geotimes(nowtime){
       }
     }
   }
+  if( coordTime && lastCoord ){
+    // last marker never read a time after the timeline
+    map.removeLayer( coordTime );
+  }
 }
 
 function jsonmap(feature, layer){
