@@ -12,7 +12,7 @@ Experimental timeline-map setup. Drop time-enabled map files onto the page. Acce
 
 * KMLs using &lt;begin&gt; and &lt;end&gt; tags
 
-* CSV files from the MyTracks Android App
+* Any CSV with valid latitude, longitude, and time readable by JavaScript Date( TIME * 1 ) or Date( TIME )
 
 * GeoJSON with a start and/or end property. Assumes 100-5000 are years, other numbers can be converted using 'new Date(Number)', and any strings can be converted using 'new Date(String)'
 
@@ -21,10 +21,6 @@ Experimental timeline-map setup. Drop time-enabled map files onto the page. Acce
 * KML &lt;Point&gt;s and &lt;Polygon&gt;s with no time information (appears at all times, does not include styles or other KML properties)
 
 Will research:
-
-* Custom CSV / TSV files
-
-* &lt;Track&gt; in KML
 
 * KML geometry support beyond Point and Polygon
 

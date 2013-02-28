@@ -247,7 +247,12 @@ var dropFile = function(e){
                             }
                             var mytime = new Date();
                             try{
-                              mytime = new Date( rawline[timecol] );
+                              if(isNaN(rawline[timecol]) * 1){
+                                mytime = new Date( rawline[timecol] );
+                              }
+                              else{
+                                mytime = new Date( rawline[timecol] * 1 );                              
+                              }
                             }
                             catch(e){
                               mytime = null;
@@ -263,7 +268,13 @@ var dropFile = function(e){
                             minlat = Math.min(minlat, mycoord.lat);
                             minlng = Math.min(minlng, mycoord.lng);              
 
-                            var mytime = new Date( rawline[timecol] );
+                            var mytime;
+                            if(isNaN(rawline[timecol]) * 1){
+                              mytime = new Date( rawline[timecol] );
+                            }
+                            else{
+                              mytime = new Date( rawline[timecol] * 1 );                              
+                            }
                             mintime = Math.min( mintime, mytime * 1 );
                             maxtime = Math.max( maxtime, mytime * 1 );
 
