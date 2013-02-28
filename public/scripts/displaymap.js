@@ -198,41 +198,151 @@ var dropFile = function(e){
           if(lines.length == 1){
             lines = lines[0].split('\r');
           }
-          var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-          var moveline = [ ];
+          var lineswithlength = [0, 0];
+          var latcol = 0, lngcol = 1, timecol = 2;
+
           for(var i=0;i<lines.length;i++){
             var rawline = replaceAll(lines[i],'"','').split(',');
-            // skip some metadata
-            if(rawline.length == 1 || isNaN( rawline[0] * 1) ){
+            // skip lines without any length
+            if(rawline.length < 3){
               continue;
             }
-            var mycoord = new L.LatLng( rawline[2] * 1.0, rawline[3] * 1.0 );
-            moveline.push(mycoord);
-            maxlat = Math.max(maxlat, mycoord.lat);
-            maxlng = Math.max(maxlng, mycoord.lng);
-            minlat = Math.min(minlat, mycoord.lat);
-            minlng = Math.min(minlng, mycoord.lng);              
+            // wait to find three lines with the same length
+            if(lineswithlength[0] == 0){
+              lineswithlength = [1, rawline.length];
+              continue;
+            }
+            else if(lineswithlength[0] < 3){
+              if(rawline.length == lineswithlength[1]){
+                // another line agrees that this is the standard length
+                lineswithlength[0]++;
+                if(lineswithlength[0] >= 3){
+                  // standard length has just been found; restart count
+                  i = -1;
+                  // add buttons and prompt for column-naming
+                  $("#colnamer").text("latitude");
+                  setMyButton = function(col){
+                    latcol = col;
+                    $("#colbtn" + col).addClass("btn-success").html('&check;');
+                    $("#colnamer").text("longitude");
+                    setMyButton = function(col){
+                      lngcol = col;
+                      $("#colbtn" + col).addClass("btn-success").html('&check;');
+                      $("#colnamer").text("time");
+                      setMyButton = function(col){
+                        timecol = col;
+                        $("#colbtn" + col).addClass("btn-success").html('&check;');
 
-            var mytime = new Date( rawline[8] );
-            mintime = Math.min( mintime, mytime * 1 );
-            maxtime = Math.max( maxtime, mytime * 1 );
+                        var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+                        var moveline = [ ];
 
-            timelayers.push({
-              geo: movemarker,
-              ll: mycoord,
-              time: mytime
-            });
+                        for(var i=0;i<lines.length;i++){
+                          var rawline = replaceAll(lines[i],'"','').split(',');
+                          if(rawline.length == lineswithlength[1]){
+                            // valid length line
+                  
+                            // avoid labels rows, where lat / lng / time cannot be decoded
+                            if(isNaN(rawline[latcol] * 1) || isNaN(rawline[lngcol] * 1)){
+                              continue;
+                            }
+                            var mytime = new Date();
+                            try{
+                              mytime = new Date( rawline[timecol] );
+                            }
+                            catch(e){
+                              mytime = null;
+                            }
+                            if(mytime === null){
+                              continue;
+                            }
+
+                            var mycoord = new L.LatLng( rawline[latcol] * 1.0, rawline[lngcol] * 1.0 );
+                            moveline.push(mycoord);
+                            maxlat = Math.max(maxlat, mycoord.lat);
+                            maxlng = Math.max(maxlng, mycoord.lng);
+                            minlat = Math.min(minlat, mycoord.lat);
+                            minlng = Math.min(minlng, mycoord.lng);              
+
+                            var mytime = new Date( rawline[timecol] );
+                            mintime = Math.min( mintime, mytime * 1 );
+                            maxtime = Math.max( maxtime, mytime * 1 );
+
+                            timelayers.push({
+                              geo: movemarker,
+                              ll: mycoord,
+                              time: mytime
+                            });
+                          }
+                        }
+                        map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+                        $(".modal").modal('hide');
+                        
+                        updateTimeline();
+                        fileindex++;
+                        if(fileindex < files.length){
+                          return reader.readAsText(files[fileindex]);
+                        }
+                        else{
+                          map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+                          return savemap();
+                        }
+                      };
+                    };
+                  };
+                  var colButtons = "";
+                  for(var c=0;c<lineswithlength[1];c++){
+                    colButtons += "<td><a id='colbtn" + c + "' class='btn' href='#' onclick='setMyButton(" + c + ")'>X</a></td>";
+                  }
+                  $("#csvguide table").html("<tr>" + colButtons + "</tr>");
+                }
+                continue;
+              }
+              else{
+                // a line with a different length, resets lineswithlength
+                lineswithlength = [1, rawline.length];
+                continue;
+              }
+            }
+            else if(rawline.length != lineswithlength[1]){
+              // length of standard lines is known; this one does not match
+              continue;
+            }
+
+            // only lines with confirmed proper length reach this point
+            var cols = "";
+            for(var c=0;c<rawline.length;c++){
+              cols += "<td>" + replaceAll( replaceAll( rawline[c], "<", "&lt;" ), ">", "&gt;") + "</td>";
+            }
+            
+            $("#csvguide table").append('<tr>' + cols + '</tr>');
           }
-          map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
-          updateTimeline();
-          fileindex++;
-          if(fileindex < files.length){
-            return reader.readAsText(files[fileindex]);
+
+          if(lineswithlength[0] >= 3 && lineswithlength[1] >= 3){
+            $("#csvguide").modal('show');
+            $(".cancelcsv").click(function(e){
+              // user canceled this CSV... move on to next files
+              fileindex++;
+              if(fileindex < files.length){
+                return reader.readAsText(files[fileindex]);
+              }
+              else{
+                map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+                return savemap();
+              }
+            });
+            // process continues after using modal to process or cancel CSV
+            return;
           }
           else{
-            map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            savemap();
-            return;
+            // not a valid CSV... continue to next file
+            fileindex++;
+            if(fileindex < files.length){
+              return reader.readAsText(files[fileindex]);
+            }
+            else{
+              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+              return savemap();
+            }
           }
         }
         var placemarks = xmlf.getElementsByTagName("Placemark");

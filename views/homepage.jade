@@ -25,3 +25,15 @@ body
         i.icon-play-circle.icon-white
         span Play
   div#map
+
+  script(type="text/javascript", src="/scripts/bootstrap.min.js")
+  div#csvguide.modal.hide.fade
+    div.modal-header
+      button.close.cancelcsv(type="button", data-dismiss="modal", aria-hidden="true") &times;
+      h3 CSV Guide
+    div.modal-body
+      p
+        span Click the X above the&nbsp;
+        span#colnamer latitude
+        span &nbsp;column.
+      table.table.table-bordered.table-striped
