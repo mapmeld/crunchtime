@@ -2,7 +2,7 @@
 
 Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
-<img src="http://i.imgur.com/wEBrQS6.png"/>
+<img src="https://raw.github.com/mapmeld/crunchtime/master/howcrunchtimeworks.png"/>
 
 ## Currently supports:
 
