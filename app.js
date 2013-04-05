@@ -2,20 +2,26 @@
  * Module dependencies.
  */
 var express = require('express')
-    , mongoose = require('mongoose')
+    //, mongoose = require('mongoose')
     , routes = require('./routes')
-    , middleware = require('./middleware')
-    , request = require('request')
-    , timemap = require('./timemap')
+    //, middleware = require('./middleware')
+    //, request = require('request')
+    //, timemap = require('./timemap')
     ;
 
-var HOUR_IN_MILLISECONDS = 3600000;
+var redis;
 
 var init = exports.init = function (config) {
   
-  var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
-
-  mongoose.connect(db_uri);
+  //var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
+  //mongoose.connect(db_uri);
+  
+  redis = require("redis").createClient();
+  if (process.env.REDISTOGO_URL) {
+    var rtg = require("url").parse(process.env.REDISTOGO_URL);
+    redis = require("redis").createClient(rtg.port, rtg.hostname);
+    redis.auth(rtg.auth.split(":")[1]);
+  }
 
   var app = express.createServer();
 
@@ -46,17 +52,26 @@ var init = exports.init = function (config) {
   });
   
   app.post('/map', function(req, res){
-    var tm = new timemap.TimeMap({
-      json: req.body.json
-    });
-    tm.save(function(err){
-      res.send({ outcome: ( err || tm._id ) });
-    });
+    //var tm = new timemap.TimeMap({
+    //  json: req.body.json
+    //});
+    //tm.save(function(err){
+    //  res.send({ outcome: ( err || tm._id ) });
+    //});
+    var specialkey = Math.round( Math.random() * 1000000000 ) + "";
+    redis.set(specialkey, req.body.json);
+    res.send({ outcome: specialkey });
   });
 
   app.get('/map/:byid', function(req, res){
-    timemap.TimeMap.findById(req.params.byid, function(err, map){
-      res.render('homepage', { json: map.json });
+    //timemap.TimeMap.findById(req.params.byid, function(err, map){
+    //  res.render('homepage', { json: map.json });
+    //});
+    redis.get(req.params.byid, function(err, reply){
+      if(err){
+        return res.send(err);
+      }
+      res.render('homepage', { json: reply });
     });
   });
   
@@ -67,8 +82,8 @@ var init = exports.init = function (config) {
     return src;
   };
 
-  app.get('/auth', middleware.require_auth_browser, routes.index);
-  app.post('/auth/add_comment',middleware.require_auth_browser, routes.add_comment);
+  //app.get('/auth', middleware.require_auth_browser, routes.index);
+  //app.post('/auth/add_comment',middleware.require_auth_browser, routes.add_comment);
   
   // redirect all non-existent URLs to doesnotexist
   app.get('*', function onNonexistentURL(req,res) {
