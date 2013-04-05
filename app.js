@@ -16,10 +16,12 @@ var init = exports.init = function (config) {
   //var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
   //mongoose.connect(db_uri);
   
-  redis = require("redis").createClient();
   if (process.env.REDISTOGO_URL) {
+    console.log("p1");
     var rtg = require("url").parse(process.env.REDISTOGO_URL);
+    console.log("p2");
     redis = require("redis").createClient(rtg.port, rtg.hostname);
+    console.log("p3");
     redis.auth(rtg.auth.split(":")[1]);
   }
 
