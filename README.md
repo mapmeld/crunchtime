@@ -24,6 +24,24 @@ Will research:
 
 * KML geometry support beyond Point and Polygon
 
+## Server-side: Node.js and RedisToGo
+
+After you drop a time-enabled file onto the page, it will be POSTed to a simple Node.js server for storage in a Redis key-value database.
+
+The HTML5 History API automatically updates the URL in your browser. Copy this URL to share your map.
+
+If you'd prefer to use MongoDB, check the master branch of this repo.
+
+### Setting it up on Heroku
+
+    git clone git@github.com:mapmeld/crunchtime.git
+    cd crunchtime
+    heroku create YOUR-APP-NAME
+    heroku addons:add redistogo
+    git push heroku master
+
+Go to YOUR-APP-NAME.heroku.com to start using the map.
+
 ## License
 
 Crunchtime is available under an open source MIT License
