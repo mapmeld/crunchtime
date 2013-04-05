@@ -17,10 +17,10 @@ $(document).ready(function(){
   // make a Leaflet map
   map = new L.Map('map');
   map.attributionControl.setPrefix('');
-  //var terrain = 'http://{s}.tiles.mapbox.com/v3/mapmeld.map-ofpv1ci4/{z}/{x}/{y}.png';
-  //var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors, Tiles &copy; 2013 MapBox';
-  var terrain = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors';
+  var terrain = 'http://{s}.tiles.mapbox.com/v3/mapmeld.map-ofpv1ci4/{z}/{x}/{y}.png';
+  var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors, Tiles &copy; 2013 MapBox';
+  //var terrain = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  //var terrainAttrib = 'Map data &copy; 2013 OpenStreetMap contributors';
   
   terrainLayer = new L.TileLayer(terrain, {maxZoom: 15, attribution: terrainAttrib});
   map.addLayer(terrainLayer);
