@@ -15,10 +15,15 @@ head
 body
   div#topbar
     div.instructions
-      strong.instructions Drop GeoJSON, KML, GPX, and CSV files with times onto this page.&nbsp;
-      a(href="/geos/ToEneko.kml") Download one
+      div.desktop
+        strong Drop GeoJSON, KML, GPX, and CSV files with times onto this page.&nbsp;
+        a(href="/geos/ToEneko.kml") Download one
+      div.mobile
+        strong Upload GeoJSON, KML, GPX, and CSV files with times.
+        input(name="mygpx", type="file")
     div.output
-      span#readtime.output
+      span#readtime
+      a#edittime.btn.btn-info Edit
     div#slidebar
     div#controls.output
       a.btn.btn-success(href="#")
@@ -37,3 +42,19 @@ body
         span#colnamer latitude
         span &nbsp;column.
       table.table.table-bordered.table-striped
+
+  div#timelinetrim.modal.hide.fade
+    div.modal-header
+      button.close(type="button", data-dismiss="modal", aria-hidden="true") &times
+      h3 Timeline Trim
+    div.modal-body
+      div#trimslider
+      ul
+        li
+          span Start at&nbsp;
+          span#trimstart
+        li
+          span End at&nbsp;
+          span#trimend
+      br
+      a#trimnow.btn.btn-primary.pull-right(href="#") Trim Now

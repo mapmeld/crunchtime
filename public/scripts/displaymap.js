@@ -12,8 +12,15 @@ var maxlng = -180;
 var minlng = 180;
 var timelayers = [ ];
 var fixlayers = [ ];
+var trimvals = [ ];
+var oldlines = [ ];
 
 $(document).ready(function(){
+  // on tablet or mobile | replace drag-and-drop with upload button
+  if( navigator.userAgent.match(/(iPod|iPhone|iPad)/i) || (navigator.userAgent.toLowerCase().indexOf("android") > -1) ){
+    switchToMobile();
+  }
+
   // make a Leaflet map
   map = new L.Map('map');
   map.attributionControl.setPrefix('');
@@ -73,7 +80,9 @@ $(document).ready(function(){
             time: new Date( timed[t].times[c] )
           });
         }
-        map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+        var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+        oldlines.push(oldline);
+        map.addLayer(oldline);
       }
       else{
         // geo with start and/or end
@@ -146,6 +155,34 @@ $(document).ready(function(){
       }, 50);
     }
   });
+
+  // trim the gpx
+  $("#edittime").on("click", function(){
+    if(mintime * 1 < maxtime * 1){
+      $("#trimstart").text( (new Date(mintime)).toUTCString() );
+      $("#trimend").text( (new Date(maxtime)).toUTCString() );
+      //$("#trimslider").html("");
+      $("#trimslider").slider({
+        range: true,
+        min: mintime,
+        max: maxtime,
+        values: [ mintime, maxtime ],
+        slide: function(event, ui) {
+          trimvals = ui.values;
+          $("#trimstart").text( (new Date( ui.values[0] )).toUTCString() );
+          $("#trimend").text( (new Date( ui.values[1] )).toUTCString() );
+        }
+      });
+      $("#timelinetrim").modal('show');
+    }
+  });
+  $("#trimnow").on("click", function(){
+    mintime = trimvals[0];
+    maxtime = trimvals[1];
+    trimGPS();
+    updateTimeline();
+  });
+
 });
 
 var displayTime = function(t){
@@ -285,7 +322,9 @@ var dropFile = function(e){
                             });
                           }
                         }
-                        map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+                        var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+                        oldlines.push(oldline);
+                        map.addLayer(oldline);
                         $(".modal").modal('hide');
                         
                         updateTimeline();
@@ -383,7 +422,9 @@ var dropFile = function(e){
               });
             }
           }
-          map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+          var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+          oldlines.push(oldline);
+          map.addLayer(oldline);
           updateTimeline();
           fileindex++;
           if(fileindex < files.length){
@@ -449,7 +490,9 @@ var dropFile = function(e){
                 time: mytime
               });
             }
-            map.addLayer(new L.polyline(moveline, { color: "#000", weight: 1 }));
+            var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+            oldlines.push(oldline);
+            map.addLayer(oldline);
           }
           else{
             // check for <begin> and <end> tags
@@ -482,7 +525,9 @@ var dropFile = function(e){
           }
         }
         if(oldmoveline.length){
-          map.addLayer(new L.polyline(oldmoveline, { clickable: false }));
+          var oldline = new L.polyline(oldmoveline, { clickable: false });
+          oldlines.push(oldline);
+          map.addLayer(oldline);
         }
         updateTimeline();
         fileindex++;
@@ -792,6 +837,100 @@ function kmlmap(placemark){
   }
   return geos;
 }
+
+function switchToMobile(){
+  $(".desktop").css({ display: "none" });
+  $(".mobile").css({ display: "block" });
+}
+
+function trimGPS(){
+  // remove or move up GPS times
+  
+  // remove any old GPS track lines
+  for(var i=0;i<oldlines.length;i++){
+    map.removeLayer( oldlines[i] );
+  }
+  oldlines = [ ];
+
+  // reset min/max lat/lng
+  maxlat = -90;
+  minlat = 90;
+  maxlng = -180;
+  minlng = 180;
+
+  var moveobj = { line: [ ], geo: null };
+
+  for(var i=timelayers.length-1;i>=0;i--){
+    if(typeof timelayers[i].ll != 'undefined'){
+      // remove missing times
+      if((mintime > timelayers[i].time * 1)||(maxtime < timelayers[i].time * 1)){
+        timelayers.splice(i, 1);
+        continue;
+      }
+      // draw moveline
+      if(timelayers[i].geo == moveobj.geo){
+        // add point to moveline
+        moveobj.line.push( timelayers[i].ll );
+      }
+      else{
+        // map last line
+        var oldline = new L.polyline(moveobj.line, { color: "#000", weight: 1 });
+        map.addLayer(oldline);
+        oldlines.push(oldline);
+        
+        // start this new line
+        moveobj = { line: [ timelayers[i].ll ], geo: timelayers[i].geo };
+      }
+      
+      // include valid times on map
+      maxlat = Math.max(maxlat, timelayers[i].ll.lat);
+      minlat = Math.min(minlat, timelayers[i].ll.lat);
+      maxlng = Math.max(maxlng, timelayers[i].ll.lng);
+      minlng = Math.min(minlng, timelayers[i].ll.lng);
+    }
+    else{
+      // remove and adjust missing times
+      if(typeof timelayers[i].start != "undefined"){
+        if(maxtime < timelayers[i].start * 1){
+          timelayers.splice(i, 1);
+          continue;
+        }
+        else if(mintime > timelayers[i].start * 1){
+          timelayers[i].start = new Date(mintime);
+        }
+      }
+      if(typeof timelayers[i].end != "undefined"){
+        if(mintime > timelayers[i].end * 1){
+          timelayers.splice(i, 1);
+          continue;
+        }
+        else if(maxtime < timelayers[i].end * 1){
+          timelayers[i].end = new Date(maxtime);
+        }
+      }
+
+      // include valid times on map
+      var bounds = timelayers[i].geo.getBounds();
+      maxlat = Math.max(maxlat, bounds.getNorthEast().lat);
+      minlat = Math.min(minlat, bounds.getSouthWest().lat);
+      maxlng = Math.max(maxlng, bounds.getNorthEast().lng);
+      minlng = Math.min(minlng, bounds.getSouthWest().lng);
+    }
+  }
+  // map last line, if it exists
+  if(moveobj.geo){
+    var oldline = new L.polyline(moveobj.line, { color: "#000", weight: 1 });
+    map.addLayer(oldline);
+    oldlines.push(oldline);
+  }
+  // move to new min/max lat/lng
+  map.fitBounds( new L.LatLngBounds( new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng) ) );
+
+  $(".modal").modal('hide');
+  
+  savemap();
+}
+
 function replaceAll(src, oldr, newr){
   while(src.indexOf(oldr) > -1){
     src = src.replace(oldr, newr);

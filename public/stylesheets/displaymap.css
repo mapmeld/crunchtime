@@ -67,7 +67,10 @@ ul li{
 .output{
   display: none;
 }
-#controls i {
+#controls i{
   vertical-align: middle;
   margin-top: -2px;
+}
+#edittime{
+  margin-left: 10px;
 }
