@@ -18,11 +18,18 @@
 <body>
   <div id="topbar">
     <div class="instructions">
-      <strong class="instructions">Drop GeoJSON, KML, GPX, and CSV files with times onto this page.</strong>
-      <a href="ToEneko.kml">Download one</a>
+      <div class="desktop">
+        <strong>Drop GeoJSON, KML, GPX, and CSV files with times onto this page.</strong>
+        <a href="ToEneko.kml">Download one</a>
+      </div>
+      <div class="mobile">
+        <strong>Upload GeoJSON, KML, GPX, and CSV files with times.</strong>
+        <input name="mygpx" type="file"/>
+      </div>
     </div>
   	<div class="output">
-  	  <span id="readtime" class="output"></span>
+  	  <span id="readtime"></span>
+  	  <a id="edittime" class="btn btn-info" style="margin-left:10px;">Edit</a>
   	</div>
   	<div id="slidebar">
   	</div>
@@ -46,6 +53,22 @@
       <p>Click the X above the <span id="colnamer">latitude</span> column.</p>
       <table class="table table-bordered table-striped">
       </table>
+    </div>
+  </div>
+  
+  <div id="timelinetrim" class="modal hide fade">
+    <div class="modal-header">
+      <button class="close" type="button" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Timeline Trim</h3>
+    </div>
+    <div class="modal-body">
+      <div id="trimslider"></div>
+      <ul>
+        <li>Start at <span id="trimstart"></span></li>
+        <li>End at <span id="trimend"></span></li>
+      </ul>
+      <br/>
+      <a id="trimnow" href="#" class="btn btn-primary pull-right">Trim Now</a>
     </div>
   </div>
 </body>

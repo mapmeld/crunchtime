@@ -1,22 +1,14 @@
 # Crunchtime
 
-1) Drop time-enabled map files onto the page.
+Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
-2) Copy the URL
-
-3) Repeat
-
-Accepts multiple files, multiple formats, and combining multiple formats.
-
-<img src="http://i.imgur.com/wEBrQS6.png"/>
+<img src="https://raw.github.com/mapmeld/crunchtime/master/howcrunchtimeworks.png"/>
 
 ## Currently supports:
 
 * GPX files
 
-* KML &lt;Track&gt;s using &lt;coord&gt; and &lt;when&gt; tags
-
-* &lt;TimeStamp&gt;&lt;when&gt; in KML
+* KMLs using &lt;coord&gt; and &lt;when&gt; tags
 
 * KMLs using &lt;begin&gt; and &lt;end&gt; tags
 
@@ -31,6 +23,24 @@ Accepts multiple files, multiple formats, and combining multiple formats.
 Will research:
 
 * KML geometry support beyond Point and Polygon
+
+## Server-side: Node.js and RedisToGo
+
+After you drop a time-enabled file onto the page, it will be POSTed to a simple Node.js server for storage in a Redis key-value database.
+
+The HTML5 History API automatically updates the URL in your browser. Copy this URL to share your map.
+
+If you'd prefer to use MongoDB, check the master branch of this repo.
+
+### Setting it up on Heroku
+
+    git clone git@github.com:mapmeld/crunchtime.git
+    cd crunchtime
+    heroku create YOUR-APP-NAME
+    heroku addons:add redistogo
+    git push heroku master
+
+Go to YOUR-APP-NAME.heroku.com to start using the map.
 
 ## License
 
