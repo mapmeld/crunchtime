@@ -74,3 +74,6 @@ ul li{
 #edittime{
   margin-left: 10px;
 }
+.mobile{
+  display: none;
+}
