@@ -7,9 +7,14 @@ var express = require('express')
     //, middleware = require('./middleware')
     //, request = require('request')
     //, timemap = require('./timemap')
+    , passport = require('passport')
+    , OpenStreetMapStrategy = require('passport-openstreetmap').Strategy
     ;
 
 var redis;
+
+var OPENSTREETMAP_CONSUMER_KEY = process.env.OSM_CONSUMER_KEY || "--insert-openstreetmap-consumer-key-here--";
+var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert-openstreetmap-consumer-secret-here--";
 
 var init = exports.init = function (config) {
   
@@ -37,7 +42,8 @@ var init = exports.init = function (config) {
     app.use(express.methodOverride());
     app.use(express.static(__dirname + '/public'));
     app.use(app.router);
-
+    app.use(passport.initialize());
+    app.use(passport.session());
   });
 
   app.configure('development', function(){
@@ -77,6 +83,23 @@ var init = exports.init = function (config) {
     });
   });
   
+  app.get('/login', function(req, res){
+    res.render('login', { user: req.user });
+  });
+  app.get('/account', ensureAuthenticated, function(req, res){
+    res.render('account', { user: req.user });
+  });
+  app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
+    res.send('hello 1');
+  });
+  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
+    res.send('hello 2');
+  });
+
+  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
+    res.redirect('/');
+  });
+  
   var replaceAll = function(src, oldr, newr){
     while(src.indexOf(oldr) > -1){
       src = src.replace(oldr, newr);
@@ -94,6 +117,35 @@ var init = exports.init = function (config) {
 
   return app;
 };
+
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+passport.use(new OpenStreetMapStrategy({
+    consumerKey: OPENSTREETMAP_CONSUMER_KEY,
+    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET
+  },
+  function(token, tokenSecret, profile, done) {
+    // asynchronous verification, for effect...
+    process.nextTick(function () {
+      
+      // To keep the example simple, the user's OpenStreetMap profile is returned to
+      // represent the logged-in user.  In a typical application, you would want
+      // to associate the OpenStreetMap account with a user record in your database,
+      // and return that user instead.
+      return done(null, profile);
+    });
+  }
+));
+
+
+
 
 // Don't run if require()'d
 if (!module.parent) {
