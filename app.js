@@ -66,8 +66,8 @@ passport.use(new OpenStreetMapStrategy({
     app.use(express.bodyParser());
     app.use(express.cookieParser());
     app.use(express.methodOverride());
-    app.use(express.session({ secret: process.env.EXPRESS_SESSION_SECRET || 'secret' }));
-    app.use(express.cookieSession({ secret: process.env.EXPRESS_SESSION_SECRET2, maxAge: 360*5 }));
+    app.use(express.session({ secret: process.env.EXPRESS_SESSION_SECRET || 'secret', maxAge: 360*5 }));
+    //app.use(express.cookieSession({ secret: process.env.EXPRESS_SESSION_SECRET2, maxAge: 360*5 }));
     app.use(express.static(__dirname + '/public'));
     app.use(passport.initialize());
     app.use(passport.session());
