@@ -27,7 +27,7 @@ passport.deserializeUser(function(obj, done) {
 passport.use(new OpenStreetMapStrategy({
     consumerKey: process.env.OPENSTREETMAP_CONSUMER_KEY,
     consumerSecret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
-    callbackURL: "http://cruncht.im/account"
+    callbackURL: "http://www.cruncht.im/account"
   },
   function(token, tokenSecret, profile, done) {
     // asynchronous verification, for effect...
