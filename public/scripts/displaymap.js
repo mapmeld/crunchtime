@@ -64,6 +64,7 @@ $(document).ready(function(){
     
     if(myjson.length){
       // load all tracks
+      files = [ ];
       for(var t=0;t<myjson.length;t++){
         $.getJSON("/track/" + myjson[t], function(data){
           processFile({ target: { result: data.xml } });
@@ -574,6 +575,8 @@ function processFile(e){
 }
 
 function savemap(){
+  files = [ ];
+
   if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){
     // if there is no geotime data or additional points, the map doesn't save
     return;
