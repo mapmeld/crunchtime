@@ -10,6 +10,7 @@ var express = require('express')
     , passport = require('passport')
     , OpenStreetMapStrategy = require('passport-openstreetmap').Strategy
     , config = require('./config')
+    , util = require('util')
     ;
 
 var redis;
@@ -36,13 +37,15 @@ var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert
     app.set('view engine', 'jade');
     app.set('view options', { pretty: true });
 
+    app.use(express.logger());
     app.use(express.bodyParser());
     app.use(express.cookieParser());
     app.use(express.methodOverride());
+    app.use(express.session({ secret: process.env.EXPRESS_SESSION_SECRET || 'secret' }));
     app.use(express.static(__dirname + '/public'));
-    app.use(app.router);
     app.use(passport.initialize());
     app.use(passport.session());
+    app.use(app.router);
   });
 
   app.configure('development', function(){
@@ -125,7 +128,8 @@ passport.deserializeUser(function(obj, done) {
 
 passport.use(new OpenStreetMapStrategy({
     consumerKey: OPENSTREETMAP_CONSUMER_KEY,
-    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET
+    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET,
+    callbackURL: "http://cruncht.im"
   },
   function(token, tokenSecret, profile, done) {
     // asynchronous verification, for effect...
