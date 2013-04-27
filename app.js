@@ -110,21 +110,26 @@ passport.use(new OpenStreetMapStrategy({
   });
   
   var ensureAuthenticated = function(req, res, next) {
-    if (req.isAuthenticated()) { return next(); }
-    res.redirect('/login')
+    if (req.isAuthenticated()) { 
+      res.send('not authenticated');
+    }
+    else{
+      res.send('logging in again');
+    }
   };
   
   app.get('/login', function(req, res){
     res.render('login', { user: req.user });
   });
   app.get('/account', ensureAuthenticated, function(req, res){
-    res.render('homepage', { json: '' });
+    res.send('hello 3');
+    //res.render('homepage', { json: '' });
   });
   app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
-    //res.send('hello 1');
+    res.send('hello 1');
   });
   app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
-    res.redirect('/account');
+    res.send('hello2');
   });
   
   var replaceAll = function(src, oldr, newr){
