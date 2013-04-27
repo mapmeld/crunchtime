@@ -25,8 +25,8 @@ passport.deserializeUser(function(obj, done) {
 });
 
 passport.use(new OpenStreetMapStrategy({
-    consumerKey: process.env.OSM_CONSUMER_KEY,
-    consumerSecret: process.env.OSM_CONSUMER_SECRET,
+    consumerKey: process.env.OPENSTREETMAP_CONSUMER_KEY,
+    consumerSecret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
     callbackURL: "http://cruncht.im/account"
   },
   function(token, tokenSecret, profile, done) {
