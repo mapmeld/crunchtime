@@ -11,6 +11,7 @@
     , "oauth": "0.9.5"
     , "superagent": "0.4.x"
     , "redis": "0.8.2"
+    , "passport": "0.1.16"
     , "passport-openstreetmap": "0.1.2"
   },
   "engines": {
