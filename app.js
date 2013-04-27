@@ -83,6 +83,11 @@ var init = exports.init = function (config) {
     });
   });
   
+  ensureAuthenticated = function(req, res, next) {
+    if (req.isAuthenticated()) { return next(); }
+    res.redirect('/login')
+  };
+  
   app.get('/login', function(req, res){
     res.render('login', { user: req.user });
   });
