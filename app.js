@@ -94,23 +94,6 @@ var init = exports.init = function (config) {
   app.get('/account', ensureAuthenticated, function(req, res){
     res.render('account', { user: req.user });
   });
-  app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
-    res.send('hello 1');
-  });
-  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
-    res.send('hello 2');
-  });
-
-  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
-    res.redirect('/');
-  });
-  
-  var replaceAll = function(src, oldr, newr){
-    while(src.indexOf(oldr) > -1){
-      src = src.replace(oldr, newr);
-    }
-    return src;
-  };
 
   //app.get('/auth', middleware.require_auth_browser, routes.index);
   //app.post('/auth/add_comment',middleware.require_auth_browser, routes.add_comment);
@@ -123,6 +106,20 @@ var init = exports.init = function (config) {
   return app;
 };
 
+
+app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
+  res.send('hello 1');
+});
+app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
+  res.send('hello 2');
+});
+  
+var replaceAll = function(src, oldr, newr){
+  while(src.indexOf(oldr) > -1){
+    src = src.replace(oldr, newr);
+  }
+  return src;
+};
 
 passport.serializeUser(function(user, done) {
   done(null, user);
