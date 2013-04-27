@@ -152,7 +152,7 @@ passport.use(OSMStrategy);
           }
         });
         alerts.onEndDocument(function(){
-          res.render('homepage', { json: mytracks });
+          res.render('homepage', { json: JSON.stringify(mytracks) });
         });
       });
       parser.parseString(body);
