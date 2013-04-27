@@ -16,9 +16,6 @@ var express = require('express')
 
 var redis;
 
-var OPENSTREETMAP_CONSUMER_KEY = process.env.OSM_CONSUMER_KEY || "--insert-openstreetmap-consumer-key-here--";
-var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert-openstreetmap-consumer-secret-here--";
-
 passport.serializeUser(function(user, done) {
   done(null, user);
 });
@@ -28,8 +25,8 @@ passport.deserializeUser(function(obj, done) {
 });
 
 passport.use(new OpenStreetMapStrategy({
-    consumerKey: OPENSTREETMAP_CONSUMER_KEY,
-    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET,
+    consumerKey: process.env.OSM_CONSUMER_KEY,
+    consumerSecret: process.env.OSM_CONSUMER_SECRET,
     callbackURL: "http://cruncht.im/account"
   },
   function(token, tokenSecret, profile, done) {
@@ -121,10 +118,10 @@ passport.use(new OpenStreetMapStrategy({
     res.render('login', { user: req.user });
   });
   app.get('/account', ensureAuthenticated, function(req, res){
-    res.render('account', { user: req.user });
+    res.render('homepage', { json: '' });
   });
   app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
-    res.send('hello 1');
+    //res.send('hello 1');
   });
   app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
     res.redirect('/account');
