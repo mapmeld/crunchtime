@@ -144,14 +144,14 @@ $(document).ready(function(){
       map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
       updateTimeline();
     }
-    else{
-      // load default GeoJSON from Chicago
-      $.getJSON('/geos/chicago.geojson', function(gj){
-        L.geoJson(gj, { onEachFeature: jsonmap });
-        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-        updateTimeline();
-      });
-    }
+  }
+  else{
+    // load default GeoJSON from Chicago
+    $.getJSON('/geos/chicago.geojson', function(gj){
+      L.geoJson(gj, { onEachFeature: jsonmap });
+      map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+      updateTimeline();
+    });
   }
   
   // add play button timer
