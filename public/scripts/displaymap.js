@@ -63,94 +63,95 @@ $(document).ready(function(){
     myjson = $.parseJSON(myjson);
     
     if(myjson.length){
-      // load all tracks
+      // load users' identifiable tracks
       files = [ ];
       for(var t=0;t<myjson.length;t++){
         $.getJSON("/track/" + myjson[t], function(data){
           processFile({ target: { result: data.xml } });
         });
       }
-      return;
     }
+    else{
     
-    var timed = myjson.timed;
-    for(var t=0;t<timed.length;t++){
-      if(typeof timed[t].times != 'undefined'){
-        // moving point
-        var movemarker = new L.marker(new L.LatLng(0,0), { clickable: false });
-        var moveline = [ ];
-        for(var c=0;c<timed[t].coords.length;c++){
-          maxlat = Math.max(maxlat, timed[t].coords[c][0]);
-          maxlng = Math.max(maxlng, timed[t].coords[c][1]);
-          minlat = Math.min(minlat, timed[t].coords[c][0]);
-          minlng = Math.min(minlng, timed[t].coords[c][1]);
-          mintime = Math.min(mintime, timed[t].times[c]);
-          maxtime = Math.max(maxtime, timed[t].times[c]);
-          moveline.push(new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ));
-          timelayers.push({
-            geo: movemarker,
-            ll: new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ),
-            time: new Date( timed[t].times[c] )
-          });
-        }
-        var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
-        oldlines.push(oldline);
-        map.addLayer(oldline);
-      }
-      else{
-        // geo with start and/or end
-        var timelyr = { };
-        if(typeof timed[t].start != 'undefined'){
-          mintime = Math.min(mintime, timed[t].start);
-          maxtime = Math.max(maxtime, timed[t].start);
-          timelyr.start = new Date( timed[t].start );
-        }
-        if(typeof timed[t].end != 'undefined'){
-          mintime = Math.min(mintime, timed[t].end);
-          maxtime = Math.max(maxtime, timed[t].end);
-          timelyr.end = new Date( timed[t].end );
-        }
-        if(typeof timed[t].coords[0].length != 'undefined'){
-          // Polygon
+      var timed = myjson.timed;
+      for(var t=0;t<timed.length;t++){
+        if(typeof timed[t].times != 'undefined'){
+          // moving point
+          var movemarker = new L.marker(new L.LatLng(0,0), { clickable: false });
+          var moveline = [ ];
           for(var c=0;c<timed[t].coords.length;c++){
             maxlat = Math.max(maxlat, timed[t].coords[c][0]);
             maxlng = Math.max(maxlng, timed[t].coords[c][1]);
             minlat = Math.min(minlat, timed[t].coords[c][0]);
             minlng = Math.min(minlng, timed[t].coords[c][1]);
-            timed[t].coords[c] = new L.LatLng(timed[t].coords[c][0], timed[t].coords[c][1]);
+            mintime = Math.min(mintime, timed[t].times[c]);
+            maxtime = Math.max(maxtime, timed[t].times[c]);
+            moveline.push(new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ));
+            timelayers.push({
+              geo: movemarker,
+              ll: new L.LatLng( timed[t].coords[c][0], timed[t].coords[c][1] ),
+              time: new Date( timed[t].times[c] )
+            });
           }
-          timelyr.geo = new L.polygon( timed[t].coords );
+          var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+          oldlines.push(oldline);
+          map.addLayer(oldline);
         }
         else{
-          // Point
-          maxlat = Math.max(maxlat, timed[t].coords[0]);
-          maxlng = Math.max(maxlng, timed[t].coords[1]);
-          minlat = Math.min(minlat, timed[t].coords[0]);
-          minlng = Math.min(minlng, timed[t].coords[1]); 
-          timelyr.geo = new L.marker( new L.LatLng( timed[t].coords[0], timed[t].coords[1] ) );
+          // geo with start and/or end
+          var timelyr = { };
+          if(typeof timed[t].start != 'undefined'){
+            mintime = Math.min(mintime, timed[t].start);
+            maxtime = Math.max(maxtime, timed[t].start);
+            timelyr.start = new Date( timed[t].start );
+          }
+          if(typeof timed[t].end != 'undefined'){
+            mintime = Math.min(mintime, timed[t].end);
+            maxtime = Math.max(maxtime, timed[t].end);
+            timelyr.end = new Date( timed[t].end );
+          }
+          if(typeof timed[t].coords[0].length != 'undefined'){
+            // Polygon
+            for(var c=0;c<timed[t].coords.length;c++){
+              maxlat = Math.max(maxlat, timed[t].coords[c][0]);
+              maxlng = Math.max(maxlng, timed[t].coords[c][1]);
+              minlat = Math.min(minlat, timed[t].coords[c][0]);
+              minlng = Math.min(minlng, timed[t].coords[c][1]);
+              timed[t].coords[c] = new L.LatLng(timed[t].coords[c][0], timed[t].coords[c][1]);
+            }
+            timelyr.geo = new L.polygon( timed[t].coords );
+          }
+          else{
+            // Point
+            maxlat = Math.max(maxlat, timed[t].coords[0]);
+            maxlng = Math.max(maxlng, timed[t].coords[1]);
+            minlat = Math.min(minlat, timed[t].coords[0]);
+            minlng = Math.min(minlng, timed[t].coords[1]); 
+            timelyr.geo = new L.marker( new L.LatLng( timed[t].coords[0], timed[t].coords[1] ) );
+          }
+          timelayers.push(timelyr);
         }
-        timelayers.push(timelyr);
       }
-    }
-    var fixed = myjson.fixed;
-    if(fixed.geojson.length){
-      // static GeoJSON
-      L.geoJson( { "type": "FeatureCollection", "features": fixed.geojson } , { onEachFeature: jsonmap });
-    }
-    // static KML, currently unsupported
-    //for(var t=0;t<fixed.kml.length;t++){
-    //  // catch minlat, maxlat, minlng, maxlng, mintime, maxtime
-    //}
-    map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-    updateTimeline();
-  }
-  else{
-    // load default GeoJSON from Chicago
-    $.getJSON('/geos/chicago.geojson', function(gj){
-      L.geoJson(gj, { onEachFeature: jsonmap });
+      var fixed = myjson.fixed;
+      if(fixed.geojson.length){
+        // static GeoJSON
+        L.geoJson( { "type": "FeatureCollection", "features": fixed.geojson } , { onEachFeature: jsonmap });
+      }
+      // static KML, currently unsupported
+      //for(var t=0;t<fixed.kml.length;t++){
+      //  // catch minlat, maxlat, minlng, maxlng, mintime, maxtime
+      //}
       map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
       updateTimeline();
-    });
+    }
+    else{
+      // load default GeoJSON from Chicago
+      $.getJSON('/geos/chicago.geojson', function(gj){
+        L.geoJson(gj, { onEachFeature: jsonmap });
+        map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+        updateTimeline();
+      });
+    }
   }
   
   // add play button timer
