@@ -167,7 +167,11 @@ $(document).ready(function(){
       }
       playStep = setInterval(function(){
         if(!ingap){
-          settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
+          var movetime = maxtime - mintime;
+          for(var g=0;g<gaps.length;g++){
+            movetime -= (gaps[g].end - gaps[g].start);
+          }
+          settime = Math.min(maxtime, settime + movetime / 500 );
           setTimeline(settime);
           displayTime(settime);
           geotimes(settime);
@@ -735,11 +739,11 @@ function updateTimeline(){
   var alltimes = timelayers.concat().sort(function(a,b){
     return a.time - b.time;
   });
-  for(var t=0;t<timelayers.length-1;t++){
-    if(timelayers[t+1].time - timelayers[t].time > 0.1 * (maxtime - mintime)){
+  for(var t=0;t<alltimes.length-1;t++){
+    if((alltimes[t+1].time - alltimes[t].time > 0.1 * (maxtime - mintime)) || ( alltimes[t+1].time - alltimes[t].time > 60 * 60 * 1000 )){
       gaps.push({
-        start: timelayers[t].time * 1 + 1000,
-        end: timelayers[t+1].time * 1 - 1000
+        start: alltimes[t].time * 1 + 1000,
+        end: alltimes[t+1].time * 1 - 1000
       });
     }
   }
