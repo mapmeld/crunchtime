@@ -4,6 +4,7 @@
 var express = require('express')
     //, mongoose = require('mongoose')
     , routes = require('./routes')
+    , util = require('util')
     //, middleware = require('./middleware')
     //, request = require('request')
     //, timemap = require('./timemap')
@@ -17,7 +18,33 @@ var redis;
 
 var OPENSTREETMAP_CONSUMER_KEY = process.env.OSM_CONSUMER_KEY || "--insert-openstreetmap-consumer-key-here--";
 var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert-openstreetmap-consumer-secret-here--";
-  
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+passport.use(new OpenStreetMapStrategy({
+    consumerKey: OPENSTREETMAP_CONSUMER_KEY,
+    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET,
+    callbackURL: "http://cruncht.im/account"
+  },
+  function(token, tokenSecret, profile, done) {
+    // asynchronous verification, for effect...
+    process.nextTick(function () {
+      
+      // To keep the example simple, the user's OpenStreetMap profile is returned to
+      // represent the logged-in user.  In a typical application, you would want
+      // to associate the OpenStreetMap account with a user record in your database,
+      // and return that user instead.
+      return done(null, profile);
+    });
+  }
+));
+
   //var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
   //mongoose.connect(db_uri);
   
@@ -117,30 +144,5 @@ var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert
   app.get('*', function onNonexistentURL(req,res) {
     res.render('doesnotexist',404);
   });
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
-
-passport.use(new OpenStreetMapStrategy({
-    consumerKey: OPENSTREETMAP_CONSUMER_KEY,
-    consumerSecret: OPENSTREETMAP_CONSUMER_SECRET
-  },
-  function(token, tokenSecret, profile, done) {
-    // asynchronous verification, for effect...
-    process.nextTick(function () {
-      
-      // To keep the example simple, the user's OpenStreetMap profile is returned to
-      // represent the logged-in user.  In a typical application, you would want
-      // to associate the OpenStreetMap account with a user record in your database,
-      // and return that user instead.
-      return done(null, profile);
-    });
-  }
-));
 
 app.listen(process.env.PORT || 3000);
