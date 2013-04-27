@@ -130,7 +130,7 @@ passport.use(OSMStrategy);
         output = bz2( buffer );
       }
       catch(e){
-        output = "fail"
+        output = e;
       }
       res.json({ xml: output.toString() });
     });
