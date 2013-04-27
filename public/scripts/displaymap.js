@@ -237,341 +237,340 @@ var dropFile = function(e){
 };
 
 function processFile(e){
-      var injson;
-      try{
-        injson = $.parseJSON( e.target.result );
+  var injson;
+  try{
+    injson = $.parseJSON( e.target.result );
+  }
+  catch(err){
+    // XML-based (KML, GPX)
+    var xmlf;
+    try{
+      xmlf = $.parseXML( e.target.result );
+    }
+    catch(err){
+      // neither JSON or XML-based; go for CSV
+      var lines = e.target.result.split('\n');
+      if(lines.length == 1){
+        lines = lines[0].split('\r');
       }
-      catch(err){
-        // XML-based (KML, GPX)
-        var xmlf;
-        try{
-          xmlf = $.parseXML( e.target.result );
+      var lineswithlength = [0, 0];
+      var latcol = 0, lngcol = 1, timecol = 2;
+      
+      for(var i=0;i<lines.length;i++){
+        var rawline = replaceAll(lines[i],'"','').split(',');
+        // skip lines without any length
+        if(rawline.length < 3){
+          continue;
         }
-        catch(err){
-          // neither JSON or XML-based; go for CSV
-          var lines = e.target.result.split('\n');
-          if(lines.length == 1){
-            lines = lines[0].split('\r');
-          }
-          var lineswithlength = [0, 0];
-          var latcol = 0, lngcol = 1, timecol = 2;
-
-          for(var i=0;i<lines.length;i++){
-            var rawline = replaceAll(lines[i],'"','').split(',');
-            // skip lines without any length
-            if(rawline.length < 3){
-              continue;
-            }
-            // wait to find three lines with the same length
-            if(lineswithlength[0] == 0){
-              lineswithlength = [1, rawline.length];
-              continue;
-            }
-            else if(lineswithlength[0] < 3){
-              if(rawline.length == lineswithlength[1]){
-                // another line agrees that this is the standard length
-                lineswithlength[0]++;
-                if(lineswithlength[0] >= 3){
-                  // standard length has just been found; restart count
-                  i = -1;
-                  // add buttons and prompt for column-naming
-                  $("#colnamer").text("latitude");
+        // wait to find three lines with the same length
+        if(lineswithlength[0] == 0){
+          lineswithlength = [1, rawline.length];
+          continue;
+        }
+        else if(lineswithlength[0] < 3){
+          if(rawline.length == lineswithlength[1]){
+            // another line agrees that this is the standard length
+            lineswithlength[0]++;
+            if(lineswithlength[0] >= 3){
+              // standard length has just been found; restart count
+              i = -1;
+              // add buttons and prompt for column-naming
+              $("#colnamer").text("latitude");
+              setMyButton = function(col){
+                latcol = col;
+                $("#colbtn" + col).addClass("btn-success").html('&check;');
+                $("#colnamer").text("longitude");
+                setMyButton = function(col){
+                  lngcol = col;
+                  $("#colbtn" + col).addClass("btn-success").html('&check;');
+                  $("#colnamer").text("time");
                   setMyButton = function(col){
-                    latcol = col;
+                    timecol = col;
                     $("#colbtn" + col).addClass("btn-success").html('&check;');
-                    $("#colnamer").text("longitude");
-                    setMyButton = function(col){
-                      lngcol = col;
-                      $("#colbtn" + col).addClass("btn-success").html('&check;');
-                      $("#colnamer").text("time");
-                      setMyButton = function(col){
-                        timecol = col;
-                        $("#colbtn" + col).addClass("btn-success").html('&check;');
 
-                        var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-                        var moveline = [ ];
+                    var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+                    var moveline = [ ];
 
-                        for(var i=0;i<lines.length;i++){
-                          var rawline = replaceAll(lines[i],'"','').split(',');
-                          if(rawline.length == lineswithlength[1]){
-                            // valid length line
+                    for(var i=0;i<lines.length;i++){
+                      var rawline = replaceAll(lines[i],'"','').split(',');
+                      if(rawline.length == lineswithlength[1]){
+                        // valid length line
                   
-                            // avoid labels rows, where lat / lng / time cannot be decoded
-                            if(isNaN(rawline[latcol] * 1) || isNaN(rawline[lngcol] * 1)){
-                              continue;
-                            }
-                            var mytime = new Date();
-                            try{
-                              if(isNaN(rawline[timecol]) * 1){
-                                mytime = new Date( rawline[timecol] );
-                              }
-                              else{
-                                mytime = new Date( rawline[timecol] * 1 );                              
-                              }
-                            }
-                            catch(e){
-                              mytime = null;
-                            }
-                            if(mytime === null){
-                              continue;
-                            }
-
-                            var mycoord = new L.LatLng( rawline[latcol] * 1.0, rawline[lngcol] * 1.0 );
-                            moveline.push(mycoord);
-                            maxlat = Math.max(maxlat, mycoord.lat);
-                            maxlng = Math.max(maxlng, mycoord.lng);
-                            minlat = Math.min(minlat, mycoord.lat);
-                            minlng = Math.min(minlng, mycoord.lng);              
-
-                            var mytime;
-                            if(isNaN(rawline[timecol]) * 1){
-                              mytime = new Date( rawline[timecol] );
-                            }
-                            else{
-                              mytime = new Date( rawline[timecol] * 1 );                              
-                            }
-                            mintime = Math.min( mintime, mytime * 1 );
-                            maxtime = Math.max( maxtime, mytime * 1 );
-
-                            timelayers.push({
-                              geo: movemarker,
-                              ll: mycoord,
-                              time: mytime
-                            });
+                        // avoid labels rows, where lat / lng / time cannot be decoded
+                        if(isNaN(rawline[latcol] * 1) || isNaN(rawline[lngcol] * 1)){
+                          continue;
+                        }
+                        var mytime = new Date();
+                        try{
+                          if(isNaN(rawline[timecol]) * 1){
+                            mytime = new Date( rawline[timecol] );
+                          }
+                          else{
+                            mytime = new Date( rawline[timecol] * 1 );                              
                           }
                         }
-                        var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
-                        oldlines.push(oldline);
-                        map.addLayer(oldline);
-                        $(".modal").modal('hide');
-                        
-                        updateTimeline();
-                        fileindex++;
-                        if(fileindex < files.length){
-                          return reader.readAsText(files[fileindex]);
+                        catch(e){
+                          mytime = null;
+                        }
+                        if(mytime === null){
+                          continue;
+                        }
+
+                        var mycoord = new L.LatLng( rawline[latcol] * 1.0, rawline[lngcol] * 1.0 );
+                        moveline.push(mycoord);
+                        maxlat = Math.max(maxlat, mycoord.lat);
+                        maxlng = Math.max(maxlng, mycoord.lng);
+                        minlat = Math.min(minlat, mycoord.lat);
+                        minlng = Math.min(minlng, mycoord.lng);              
+
+                        var mytime;
+                        if(isNaN(rawline[timecol]) * 1){
+                          mytime = new Date( rawline[timecol] );
                         }
                         else{
-                          map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-                          return savemap();
+                          mytime = new Date( rawline[timecol] * 1 );                              
                         }
-                      };
-                    };
+                        mintime = Math.min( mintime, mytime * 1 );
+                        maxtime = Math.max( maxtime, mytime * 1 );
+
+                        timelayers.push({
+                          geo: movemarker,
+                          ll: mycoord,
+                          time: mytime
+                        });
+                      }
+                    }
+                    var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+                    oldlines.push(oldline);
+                    map.addLayer(oldline);
+                    $(".modal").modal('hide');
+
+                    updateTimeline();
+                    fileindex++;
+                    if(fileindex < files.length){
+                      return reader.readAsText(files[fileindex]);
+                    }
+                    else{
+                      map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+                      return savemap();
+                    }
                   };
-                  var colButtons = "";
-                  for(var c=0;c<lineswithlength[1];c++){
-                    colButtons += "<td><a id='colbtn" + c + "' class='btn' href='#' onclick='setMyButton(" + c + ")'>X</a></td>";
-                  }
-                  $("#csvguide table").html("<tr>" + colButtons + "</tr>");
-                }
-                continue;
+                };
+              };
+              var colButtons = "";
+              for(var c=0;c<lineswithlength[1];c++){
+                colButtons += "<td><a id='colbtn" + c + "' class='btn' href='#' onclick='setMyButton(" + c + ")'>X</a></td>";
               }
-              else{
-                // a line with a different length, resets lineswithlength
-                lineswithlength = [1, rawline.length];
-                continue;
-              }
+              $("#csvguide table").html("<tr>" + colButtons + "</tr>");
             }
-            else if(rawline.length != lineswithlength[1]){
-              // length of standard lines is known; this one does not match
-              continue;
-            }
-
-            // only lines with confirmed proper length reach this point
-            var cols = "";
-            for(var c=0;c<rawline.length;c++){
-              cols += "<td>" + replaceAll( replaceAll( rawline[c], "<", "&lt;" ), ">", "&gt;") + "</td>";
-            }
-            
-            $("#csvguide table").append('<tr>' + cols + '</tr>');
-          }
-
-          if(lineswithlength[0] >= 3 && lineswithlength[1] >= 3){
-            $("#csvguide").modal('show');
-            $(".cancelcsv").click(function(e){
-              // user canceled this CSV... move on to next files
-              fileindex++;
-              if(fileindex < files.length){
-                return reader.readAsText(files[fileindex]);
-              }
-              else{
-                map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-                return savemap();
-              }
-            });
-            // process continues after using modal to process or cancel CSV
-            return;
+            continue;
           }
           else{
-            // not a valid CSV... continue to next file
-            fileindex++;
-            if(fileindex < files.length){
-              return reader.readAsText(files[fileindex]);
-            }
-            else{
-              map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-              return savemap();
-            }
+            // a line with a different length, resets lineswithlength
+            lineswithlength = [1, rawline.length];
+            continue;
           }
         }
-        var placemarks = xmlf.getElementsByTagName("Placemark");
-        if(!placemarks.length){
-          // no KML Placemarks, go to GPX reader
-          var pts = xmlf.getElementsByTagName("trkpt");
-          var times = xmlf.getElementsByTagName("time");
-          var moveline = [ ];
-          if(pts.length && times.length && pts.length == times.length){
-            var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-            for(var p=0;p<pts.length;p++){
-              var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
-              moveline.push(mycoord);
-              maxlat = Math.max(maxlat, mycoord.lat);
-              maxlng = Math.max(maxlng, mycoord.lng);
-              minlat = Math.min(minlat, mycoord.lat);
-              minlng = Math.min(minlng, mycoord.lng);              
+        else if(rawline.length != lineswithlength[1]){
+          // length of standard lines is known; this one does not match
+          continue;
+        }
 
-              var mytime = new Date( $(times[p]).text() );
-              mintime = Math.min( mintime, mytime * 1 );
-              maxtime = Math.max( maxtime, mytime * 1 );
-              
-              timelayers.push({
-                geo: movemarker,
-                ll: mycoord,
-                time: mytime
-              });
-            }
-          }
-          var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
-          oldlines.push(oldline);
-          map.addLayer(oldline);
-          updateTimeline();
+        // only lines with confirmed proper length reach this point
+        var cols = "";
+        for(var c=0;c<rawline.length;c++){
+          cols += "<td>" + replaceAll( replaceAll( rawline[c], "<", "&lt;" ), ">", "&gt;") + "</td>";
+        }
+
+        $("#csvguide table").append('<tr>' + cols + '</tr>');
+      }
+
+      if(lineswithlength[0] >= 3 && lineswithlength[1] >= 3){
+        $("#csvguide").modal('show');
+        $(".cancelcsv").click(function(e){
+          // user canceled this CSV... move on to next files
           fileindex++;
           if(fileindex < files.length){
             return reader.readAsText(files[fileindex]);
           }
           else{
             map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-            savemap();
-            return;
+            return savemap();
           }
-        }
-        // KML loading
-        var oldmarker = new L.marker(new L.LatLng(0,0), { clickable: false });
-        var oldmoveline = [ ];
-        for(var i=0;i<placemarks.length;i++){
-          var inkml = placemarks[i];
-          var whens = inkml.getElementsByTagName("when");
-          var coords = inkml.getElementsByTagName("coord");
-          if(whens.length && !coords.length){
-            coords = inkml.getElementsByTagName("gx:coord");
-            if(!coords.length){
-              // old-style <Placemark><TimeSpan><when> syntax
-              coords = inkml.getElementsByTagName("coordinates");
-              var rawcoord = $(coords[0]).text().split(",");
-              var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
-              oldmoveline.push(mycoord);
-              maxlat = Math.max(maxlat, mycoord.lat);
-              maxlng = Math.max(maxlng, mycoord.lng);
-              minlat = Math.min(minlat, mycoord.lat);
-              minlng = Math.min(minlng, mycoord.lng);              
-
-              var mytime = new Date( $(whens[0]).text() );
-              mintime = Math.min( mintime, mytime * 1 );
-              maxtime = Math.max( maxtime, mytime * 1 );
-              
-              timelayers.push({
-                geo: oldmarker,
-                ll: mycoord,
-                time: mytime
-              });
-              continue;
-            }
-          }
-          var moveline = [ ];
-          if(whens.length && coords.length && whens.length == coords.length){
-            var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
-            for(var c=0;c<coords.length;c++){
-              var rawcoord = $(coords[c]).text().split(" ");
-              var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
-              moveline.push(mycoord);
-              maxlat = Math.max(maxlat, mycoord.lat);
-              maxlng = Math.max(maxlng, mycoord.lng);
-              minlat = Math.min(minlat, mycoord.lat);
-              minlng = Math.min(minlng, mycoord.lng);              
-
-              var mytime = new Date( $(whens[c]).text() );
-              mintime = Math.min( mintime, mytime * 1 );
-              maxtime = Math.max( maxtime, mytime * 1 );
-              
-              timelayers.push({
-                geo: movemarker,
-                ll: mycoord,
-                time: mytime
-              });
-            }
-            var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
-            oldlines.push(oldline);
-            map.addLayer(oldline);
-          }
-          else{
-            // check for <begin> and <end> tags
-            var begin = inkml.getElementsByTagName("begin");
-            var end = inkml.getElementsByTagName("end");
-            if(begin.length || end.length){
-              // KML placemark with a begin and/or end
-              var timefeature = { };
-              if(begin.length){
-                timefeature.start = new Date( $(begin[0]).text() );
-                mintime = Math.min(mintime, timefeature.start * 1);
-                maxtime = Math.max(maxtime, timefeature.start * 1);
-              }
-              if(end.length){
-                timefeature.end = new Date( $(end[0]).text() );
-                mintime = Math.min(mintime, timefeature.end * 1);
-                maxtime = Math.max(maxtime, timefeature.end * 1);
-              }
-              timefeature.geo = kmlmap(inkml);
-              timelayers.push( timefeature );
-            }
-            else{
-              // KML object without a time
-              var maps = kmlmap(inkml);
-              for(var m=0;m<maps.length;m++){
-                map.addLayer( maps[m] );
-                fixlayers.push( maps );
-              }
-            }
-          }
-        }
-        if(oldmoveline.length){
-          var oldline = new L.polyline(oldmoveline, { clickable: false });
-          oldlines.push(oldline);
-          map.addLayer(oldline);
-        }
-        updateTimeline();
+        });
+        // process continues after using modal to process or cancel CSV
+        return;
+      }
+      else{
+        // not a valid CSV... continue to next file
         fileindex++;
         if(fileindex < files.length){
           return reader.readAsText(files[fileindex]);
         }
         else{
           map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
-          savemap();
-          return;
+          return savemap();
         }
       }
-      L.geoJson(injson, {
-        onEachFeature: jsonmap
-      });
+    }
+    var placemarks = xmlf.getElementsByTagName("Placemark");
+    if(!placemarks.length){
+      // no KML Placemarks, go to GPX reader
+      var pts = xmlf.getElementsByTagName("trkpt");
+      var times = xmlf.getElementsByTagName("time");
+      var moveline = [ ];
+      if(pts.length && times.length && pts.length == times.length){
+        var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+        for(var p=0;p<pts.length;p++){
+          var mycoord = new L.LatLng( 1.0 * pts[p].getAttribute("lat"), 1.0 * pts[p].getAttribute("lon") );
+          moveline.push(mycoord);
+          maxlat = Math.max(maxlat, mycoord.lat);
+          maxlng = Math.max(maxlng, mycoord.lng);
+          minlat = Math.min(minlat, mycoord.lat);
+          minlng = Math.min(minlng, mycoord.lng);              
+
+          var mytime = new Date( $(times[p]).text() );
+          mintime = Math.min( mintime, mytime * 1 );
+          maxtime = Math.max( maxtime, mytime * 1 );
+
+          timelayers.push({
+            geo: movemarker,
+            ll: mycoord,
+            time: mytime
+          });
+        }
+      }
+      var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+      oldlines.push(oldline);
+      map.addLayer(oldline);
       updateTimeline();
-        
       fileindex++;
       if(fileindex < files.length){
-        reader.readAsText(files[fileindex]);
+        return reader.readAsText(files[fileindex]);
       }
       else{
         map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
         savemap();
+        return;
       }
-    };
+    }
+    // KML loading
+    var oldmarker = new L.marker(new L.LatLng(0,0), { clickable: false });
+    var oldmoveline = [ ];
+    for(var i=0;i<placemarks.length;i++){
+      var inkml = placemarks[i];
+      var whens = inkml.getElementsByTagName("when");
+      var coords = inkml.getElementsByTagName("coord");
+      if(whens.length && !coords.length){
+        coords = inkml.getElementsByTagName("gx:coord");
+        if(!coords.length){
+          // old-style <Placemark><TimeSpan><when> syntax
+          coords = inkml.getElementsByTagName("coordinates");
+          var rawcoord = $(coords[0]).text().split(",");
+          var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
+          oldmoveline.push(mycoord);
+          maxlat = Math.max(maxlat, mycoord.lat);
+          maxlng = Math.max(maxlng, mycoord.lng);
+          minlat = Math.min(minlat, mycoord.lat);
+          minlng = Math.min(minlng, mycoord.lng);              
+
+          var mytime = new Date( $(whens[0]).text() );
+          mintime = Math.min( mintime, mytime * 1 );
+          maxtime = Math.max( maxtime, mytime * 1 );
+
+          timelayers.push({
+            geo: oldmarker,
+            ll: mycoord,
+            time: mytime
+          });
+          continue;
+        }
+      }
+      var moveline = [ ];
+      if(whens.length && coords.length && whens.length == coords.length){
+        var movemarker = new L.marker( new L.LatLng(0, 0), { clickable: false } );
+        for(var c=0;c<coords.length;c++){
+          var rawcoord = $(coords[c]).text().split(" ");
+          var mycoord = new L.LatLng( rawcoord[1] * 1.0, rawcoord[0] * 1.0 );
+          moveline.push(mycoord);
+          maxlat = Math.max(maxlat, mycoord.lat);
+          maxlng = Math.max(maxlng, mycoord.lng);
+          minlat = Math.min(minlat, mycoord.lat);
+          minlng = Math.min(minlng, mycoord.lng);              
+
+          var mytime = new Date( $(whens[c]).text() );
+          mintime = Math.min( mintime, mytime * 1 );
+          maxtime = Math.max( maxtime, mytime * 1 );
+              
+          timelayers.push({
+            geo: movemarker,
+            ll: mycoord,
+            time: mytime
+          });
+        }
+        var oldline = new L.polyline(moveline, { color: "#000", weight: 1 });
+        oldlines.push(oldline);
+        map.addLayer(oldline);
+      }
+      else{
+        // check for <begin> and <end> tags
+        var begin = inkml.getElementsByTagName("begin");
+        var end = inkml.getElementsByTagName("end");
+        if(begin.length || end.length){
+          // KML placemark with a begin and/or end
+          var timefeature = { };
+          if(begin.length){
+            timefeature.start = new Date( $(begin[0]).text() );
+            mintime = Math.min(mintime, timefeature.start * 1);
+            maxtime = Math.max(maxtime, timefeature.start * 1);
+          }
+          if(end.length){
+            timefeature.end = new Date( $(end[0]).text() );
+            mintime = Math.min(mintime, timefeature.end * 1);
+            maxtime = Math.max(maxtime, timefeature.end * 1);
+          }
+          timefeature.geo = kmlmap(inkml);
+          timelayers.push( timefeature );
+        }
+        else{
+          // KML object without a time
+          var maps = kmlmap(inkml);
+          for(var m=0;m<maps.length;m++){
+            map.addLayer( maps[m] );
+            fixlayers.push( maps );
+          }
+        }
+      }
+    }
+    if(oldmoveline.length){
+      var oldline = new L.polyline(oldmoveline, { clickable: false });
+      oldlines.push(oldline);
+      map.addLayer(oldline);
+    }
+    updateTimeline();
+    fileindex++;
+    if(fileindex < files.length){
+      return reader.readAsText(files[fileindex]);
+    }
+    else{
+      map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+      savemap();
+      return;
+    }
+  }
+  L.geoJson(injson, {
+    onEachFeature: jsonmap
+  });
+  updateTimeline();
+
+  fileindex++;
+  if(fileindex < files.length){
+    reader.readAsText(files[fileindex]);
+  }
+  else{
+    map.fitBounds(new L.LatLngBounds(new L.LatLng(minlat, minlng), new L.LatLng(maxlat, maxlng)));
+    savemap();
+  }
 }
 
 function savemap(){
