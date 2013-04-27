@@ -1,2 +1,16 @@
-
-a(href="http://www.cruncht.im/auth/openstreetmap") Login with OpenStreetMap
+head
+  meta(name="viewport", content="initial-scale=1.0, user-scalable=no")
+  title Cruncht.im
+  link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css", type="text/css")
+  link(href='/stylesheets/displaymap.css', rel='stylesheet', type='text/css')
+body
+  div.container
+    .row
+      .span10.offset1
+        .hero-unit
+          h3 Map Your GPS Traces
+          hr
+          p Import your OpenStreetMap traces into a continuous timeline
+          a.btn.btn-primary(href="http://www.cruncht.im/auth/openstreetmap") Login with OpenStreetMap
+          br
+          em Traces' privacy must be set to 'identifiable' for them to appear on the map
