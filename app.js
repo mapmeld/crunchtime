@@ -127,7 +127,7 @@ passport.use(new OpenStreetMapStrategy({
     res.send('hello 1');
   });
   app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
-    res.send('hello 2');
+    res.redirect('/account');
   });
   
   var replaceAll = function(src, oldr, newr){
