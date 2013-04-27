@@ -1072,8 +1072,9 @@ function simplifyLines(simplifyCoeff){
         map.addLayer(oldline);
         
         // edit out the old timelayer
-        for(var x=timelayers[t].length-1;x>=t;x--){
+        for(var x=timelayers.length-1;x>=t;x--){
           if(timelayers[x].geo == currentMarker){
+            console.log("removing at " + x);
             timelayers.splice(x,1);
           }
         }
