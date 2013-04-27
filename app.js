@@ -137,15 +137,14 @@ passport.use(OSMStrategy);
             for(var a=0;a<attarray.length;a++){
               attrs[ attarray[a][0] ] = attarray[a][1];
             }
-            mytracks.push( attrs["id"] );
+            mytracks.push( { id: attrs["id"], pts: [ ] } );
           }
         });
         alerts.onEndDocument(function(){
-          //res.json(mytracks);
+          var t = 0;
           //for(var t=0;t<mytracks.length;t++){
-          var t=0;
             request.get({
-              url: 'http://api.openstreetmap.org/api/0.6/gpx/' + mytracks[t] + '/data',
+              url: 'http://api.openstreetmap.org/api/0.6/gpx/' + mytracks[t].id + '/data',
               oauth: {
                 consumer_key: process.env.OPENSTREETMAP_CONSUMER_KEY,
                 consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
@@ -154,8 +153,34 @@ passport.use(OSMStrategy);
               },
               encoding: null
             }, function(e, r, buffer){
-              var output = bz2( buffer );
-              res.send( output.toString() );
+              var timeon = false;
+              var parser2 = new xml.SaxParser(function(alerts){
+                alerts.onStartElementNS(function(elem, attarray, prefix, uri, namespaces){
+                  if(elem == "trkpt"){
+                    var attrs = { };
+                    mytracks[t].pts.push({ ll: [ attrs["lat"] * 1.0, attrs["lng"] * 1.0 ], time: "" });
+                  }
+                  else if(elem == "time"){
+                    timeon = true;
+                  }
+                });
+                alerts.onCharacters(function(chars){
+                  if(timeon){
+                    mytracks[t].pts[ mytracks[t].pts.length - 1].time += chars;
+                  }
+                });
+                alerts.onEndElementNS(function(elem, attarray, prefix, uri, namespaces){
+                  if(elem == "time"){
+                    if(timeon){
+                      timeon = false;
+                    }
+                  }
+                });
+                alerts.onEndDocument(function(){
+                  return res.json( mytracks );
+                });
+              });
+              parser2.parseString( buffer.toString() );
             });
           //}
         });
