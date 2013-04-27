@@ -151,9 +151,11 @@ passport.use(OSMStrategy);
                 consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
                 token: req.user.token,
                 token_secret: req.user.tokenSecret
-              }
-            }, function(e, r, body){
-              res.send( bz2( body ) );
+              },
+              encoding: null
+            }, function(e, r, buffer){
+              var output = bz2( buffer );
+              res.send( output.toString() );
             });
           //}
         });
