@@ -52,12 +52,12 @@ body
       button.close(type="button", data-dismiss="modal", aria-hidden="true") &times
       h3 Edit Map
     div.modal-body
-      div.well(onmousedown="showSimplification()")
-        strong Smooth Lines
-        br
-        div#simplifyslider
-        a.btn.btn-info(href="#", onclick="simplifyLines()") Simplify
-        br
+      strong Smooth Lines
+      a.btn.btn-info(href="#", onclick="simplifyLines(0.0003)") Simplify (Most)
+      a.btn.btn-info(href="#", onclick="simplifyLines(0.0001)") Simplify (Average)
+      a.btn.btn-info(href="#", onclick="simplifyLines(0.00001)") Simplify (Least)
+      br
+      br
       strong Trim
       br
       div#trimslider

@@ -17,8 +17,6 @@ var trimvals = [ ];
 var oldlines = [ ];
 var reader, fileindex, files;
 var ingap = false;
-var simplifyCoeff;
-var simpleLines = [ ];
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -199,17 +197,6 @@ $(document).ready(function(){
           trimvals = ui.values;
           $("#trimstart").text( (new Date( ui.values[0] )).toUTCString() );
           $("#trimend").text( (new Date( ui.values[1] )).toUTCString() );
-        }
-      });
-
-      $("#simplifyslider").slider({
-        range: true,
-        min: 0.00001,
-        max: 0.0003,
-        value: 0.00001,
-        slide: function(event, ui) {
-          simplifyCoeff = ui.value;
-          simplifyLines(true);
         }
       });
 
@@ -1052,23 +1039,10 @@ function trimGPS(){
   savemap();
 }
 
-function showSimplification(){
-  $(".modal-backdrop").css({
-    opacity: 0.1,
-    filter: "alpha(opacity=10)"
-  });
-  simplifyLines(true);
-}
-
-function simplifyLines(keepmap){
+function simplifyLines(coeff){
   if(!timelayers.length){
     return;
   }
-  
-  for(var s=0;s<simpleLines.length;s++){
-    map.removeLayer(simpleLines[s]);
-  }
-  simpleLines = [ ];
   
   var currentMarker = timelayers[timelayers.length-1].geo;
   var currentPts = [ ];
@@ -1080,35 +1054,24 @@ function simplifyLines(keepmap){
         var leafPts = simplify(currentPts, simplifyCoeff);
         for(var p=0;p<leafPts.length;p++){
           leafPts[p] = new L.LatLng( leafPts[p].y * 1.0, leafPts[p].x * 1.0 );
-          if(!keepmap){
-            timelayers.push({
-              geo: repMarker,
-              ll: leafPts[p],
-              time: new Date( leafPts[p].z * 1 )
-            });
-          }
-          else{
-            simpleLines[simpleLines.length-1].push( leafPts[p] );
-          }
+          timelayers.push({
+            geo: repMarker,
+            ll: leafPts[p],
+            time: new Date( leafPts[p].z * 1 )
+          });
         }
         
-        if(keepmap){
-          // visualize the new timelayer
-          simpleLines[simpleLines.length-1] = new L.Polyline( simpleLines[simpleLines.length-1], { color: "#f00" } );
-          map.addLayer( simpleLines[simpleLines.length-1] );
-        }
-        else{
-          // edit out the old timelayer
-          for(var x=timelayers[t].length-1;x>=t;x--){
-            if(timelayers[t].geo == timelayers[x].geo){
-              timelayers.splice(x,1);
-            }
+        // edit out the old timelayer
+        for(var x=timelayers[t].length-1;x>=t;x--){
+          if(timelayers[t].geo == timelayers[x].geo){
+            timelayers.splice(x,1);
           }
         }
       }
 
-      //reset
+      // set up for next geo
       currentMarker = timelayers[t].geo;
+      simpleLines.push([ ]);
       if(typeof timelayers[t].time != "undefined"){
         currentPts = [{
           x: timelayers[t].ll.lng,
