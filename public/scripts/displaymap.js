@@ -16,6 +16,7 @@ var fixlayers = [ ];
 var trimvals = [ ];
 var oldlines = [ ];
 var reader, fileindex, files;
+var ingap = false;
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -165,10 +166,12 @@ $(document).ready(function(){
         settime = mintime;
       }
       playStep = setInterval(function(){
-        settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
-        setTimeline(settime);
-        displayTime(settime);
-        geotimes(settime);
+        if(!ingap){
+          settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
+          setTimeline(settime);
+          displayTime(settime);
+          geotimes(settime);
+        }
       }, 50);
     }
   });
@@ -185,6 +188,8 @@ $(document).ready(function(){
         max: maxtime,
         values: [ mintime, maxtime ],
         slide: function(event, ui) {
+          ingap = false;
+          $(".clock").css({ display: "none" });
           trimvals = ui.values;
           $("#trimstart").text( (new Date( ui.values[0] )).toUTCString() );
           $("#trimend").text( (new Date( ui.values[1] )).toUTCString() );
@@ -664,7 +669,7 @@ function getTimelineTime(val){
       movetime -= (gaps[g].end - gaps[g].start);
     }
     var mymin = mintime * 1;
-    for(var g=0;g<gaps.length;t++){
+    for(var g=0;g<gaps.length;g++){
       if(val > (gaps[g].start - mymin) / movetime * 100){
         // gap has come and gone
         mymin += (gaps[g].end - gaps[g].start);
@@ -677,7 +682,6 @@ function getTimelineTime(val){
   }
 }
 
-var ingap = false;
 function setTimeline(t){
   var val = null;
   if(!gaps.length){
@@ -696,8 +700,11 @@ function setTimeline(t){
           val = (t - mintime) / movetime * 100;
           $(".clock").css({ display: "inline" });
           setTimeout(function(){
-            setTimeline(gaps[g].end * 1 + 1);
-            $(".clock").css({ display: "none" });
+            if(ingap){
+              ingap = false;
+              setTimeline(gaps[g].end * 1 + 1000);
+              $(".clock").css({ display: "none" });
+            }
           }, 500);
         }
         break;
@@ -715,7 +722,7 @@ function setTimeline(t){
       val = (t - mintime) / movetime * 100;
     }
   }
-  console.log(val);
+  //console.log(val);
   $("#slidebar").slider({ value: Math.min(100, val) });
 }
 
