@@ -40,7 +40,7 @@ var OSMStrategy = new OpenStreetMapStrategy({
       // represent the logged-in user.  In a typical application, you would want
       // to associate the OpenStreetMap account with a user record in your database,
       // and return that user instead.
-      return done(null, profile);
+      return done(null, { profile: profile, token: token, tokenSecret: tokenSecret });
     });
   }
 );
@@ -124,8 +124,8 @@ passport.use(OSMStrategy);
       oauth: {
         consumer_key: process.env.OPENSTREETMAP_CONSUMER_KEY,
         consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
-        token: req.query.oauth_token,
-        token_secret: req.query.oauth_verifier
+        token: req.user.token,
+        token_secret: req.user.tokenSecret
       }
     }, function(e, r, body){
       res.send( body );
