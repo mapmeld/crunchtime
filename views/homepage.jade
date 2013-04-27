@@ -10,6 +10,7 @@ head
   script(type="text/javascript", src="/scripts/leaflet.js")
   script(type="text/javascript", src="/scripts/jquery-1.7.1.min.js")
   script(type="text/javascript", src="/scripts/jquery-ui-slider.min.js")
+  script(type="text/javascript", src="/scripts/simplify-min.js")
   script(type="text/javascript") var myjson = '!{json}';
   script(type="text/javascript", src="/scripts/displaymap.js")
 body
@@ -49,8 +50,16 @@ body
   div#timelinetrim.modal.hide.fade
     div.modal-header
       button.close(type="button", data-dismiss="modal", aria-hidden="true") &times
-      h3 Timeline Trim
+      h3 Edit Map
     div.modal-body
+      div.well(onmousedown="showSimplification()")
+        strong Smooth Lines
+        br
+        div#simplifyslider
+        a.btn.btn-info(href="#", onclick="simplifyLines()") Simplify
+        br
+      strong Trim
+      br
       div#trimslider
       ul
         li

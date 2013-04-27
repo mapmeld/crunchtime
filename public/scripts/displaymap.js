@@ -17,6 +17,8 @@ var trimvals = [ ];
 var oldlines = [ ];
 var reader, fileindex, files;
 var ingap = false;
+var simplifyCoeff;
+var simpleLines = [ ];
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -199,6 +201,18 @@ $(document).ready(function(){
           $("#trimend").text( (new Date( ui.values[1] )).toUTCString() );
         }
       });
+
+      $("#simplifyslider").slider({
+        range: true,
+        min: 0.00001,
+        max: 0.0003,
+        value: 0.00001,
+        slide: function(event, ui) {
+          simplifyCoeff = ui.value;
+          simplifyLines(true);
+        }
+      });
+
       $("#timelinetrim").modal('show');
     }
   });
@@ -1036,6 +1050,83 @@ function trimGPS(){
   $(".modal").modal('hide');
   
   savemap();
+}
+
+function showSimplification(){
+  $(".modal-backdrop").css({
+    opacity: 0.1,
+    filter: "alpha(opacity=10)"
+  });
+  simplifyLines(true);
+}
+
+function simplifyLines(keepmap){
+  if(!timelayers.length){
+    return;
+  }
+  
+  for(var s=0;s<simpleLines.length;s++){
+    map.removeLayer(simpleLines[s]);
+  }
+  simpleLines = [ ];
+  
+  var currentMarker = timelayers[timelayers.length-1].geo;
+  var currentPts = [ ];
+  for(var t=timelayers.length-1;t>=0;t--){
+    if(timelayers[t].geo != currentMarker){
+      if(currentPts.length >= 2){
+        // simplify this line
+        var repMarker = new L.Marker();
+        var leafPts = simplify(currentPts, simplifyCoeff);
+        for(var p=0;p<leafPts.length;p++){
+          leafPts[p] = new L.LatLng( leafPts[p].y * 1.0, leafPts[p].x * 1.0 );
+          if(!keepmap){
+            timelayers.push({
+              geo: repMarker,
+              ll: leafPts[p],
+              time: new Date( leafPts[p].z * 1 )
+            });
+          }
+          else{
+            simpleLines[simpleLines.length-1].push( leafPts[p] );
+          }
+        }
+        
+        if(keepmap){
+          // visualize the new timelayer
+          simpleLines[simpleLines.length-1] = new L.Polyline( simpleLines[simpleLines.length-1], { color: "#f00" } );
+          map.addLayer( simpleLines[simpleLines.length-1] );
+        }
+        else{
+          // edit out the old timelayer
+          for(var x=timelayers[t].length-1;x>=t;x--){
+            if(timelayers[t].geo == timelayers[x].geo){
+              timelayers.splice(x,1);
+            }
+          }
+        }
+      }
+
+      //reset
+      currentMarker = timelayers[t].geo;
+      if(typeof timelayers[t].time != "undefined"){
+        currentPts = [{
+          x: timelayers[t].ll.lng,
+          y: timelayers[t].ll.lat,
+          z: timelayers[t].time * 1
+        }];
+      }
+    }
+    else if(typeof timelayers[t].time != "undefined"){
+      currentPts.push({
+        x: timelayers[t].ll.lng,
+        y: timelayers[t].ll.lat,
+        z: timelayers[t].time * 1
+      });
+    }
+  }
+  trimGPS();
+  updateTimeline();
 }
 
 function replaceAll(src, oldr, newr){
