@@ -1039,15 +1039,21 @@ function trimGPS(){
   savemap();
 }
 
-function simplifyLines(coeff){
+function simplifyLines(simplifyCoeff){
   if(!timelayers.length){
     return;
   }
+
+  // remove any old GPS track lines
+  for(var i=0;i<oldlines.length;i++){
+    map.removeLayer( oldlines[i] );
+  }
+  oldlines = [ ];
   
   var currentMarker = timelayers[timelayers.length-1].geo;
   var currentPts = [ ];
   for(var t=timelayers.length-1;t>=0;t--){
-    if(timelayers[t].geo != currentMarker){
+    if(timelayers[t].geo != currentMarker || t == 0){
       if(currentPts.length >= 2){
         // simplify this line
         var repMarker = new L.Marker();
@@ -1061,6 +1067,10 @@ function simplifyLines(coeff){
           });
         }
         
+        var oldline = new L.polyline( leafPts, { weight: 1, color: "#000" });
+        oldlines.push(oldline);
+        map.addLayer(oldline);
+        
         // edit out the old timelayer
         for(var x=timelayers[t].length-1;x>=t;x--){
           if(timelayers[t].geo == timelayers[x].geo){
@@ -1071,7 +1081,6 @@ function simplifyLines(coeff){
 
       // set up for next geo
       currentMarker = timelayers[t].geo;
-      simpleLines.push([ ]);
       if(typeof timelayers[t].time != "undefined"){
         currentPts = [{
           x: timelayers[t].ll.lng,
