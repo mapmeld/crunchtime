@@ -16,6 +16,7 @@
     , "node-xml": ">=1.0.1"
     , "request": ">=0.10.0"
     , "querystring": ">0.0.0"
+    , "node-bzip": ">0.0.0"
   },
   "engines": {
         "node": "0.8.X",

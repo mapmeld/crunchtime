@@ -14,6 +14,7 @@ var express = require('express')
     , xml = require('node-xml')
     , request = require('request')
     , qs = require('querystring')
+    , bz2 = require('node-bzip')
     ;
 
 var redis;
@@ -128,7 +129,36 @@ passport.use(OSMStrategy);
         token_secret: req.user.tokenSecret
       }
     }, function(e, r, body){
-      res.send( body );
+      var mytracks = [ ];
+      var parser = new xml.SaxParser(function(alerts){
+        alerts.onStartElementNS(function(elem, attarray, prefix, uri, namespaces){
+          if(elem == "gpx_file"){
+            var attrs = { };
+            for(var a=0;a<attarray.length;a++){
+              attrs[ attarray[a][0] ] = attarray[a][1];
+            }
+            mytracks.push( attrs["id"] );
+          }
+        });
+        alerts.onEndDocument(function(){
+          //res.json(mytracks);
+          //for(var t=0;t<mytracks.length;t++){
+          var t=0;
+            request.get({
+              url: 'http://api.openstreetmap.org/api/0.6/gpx/' + mytracks[t] + '/data',
+              oauth: {
+                consumer_key: process.env.OPENSTREETMAP_CONSUMER_KEY,
+                consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
+                token: req.user.token,
+                token_secret: req.user.tokenSecret
+              }
+            }, function(e, r, body){
+              res.send( bz2( body ) );
+            });
+          //}
+        });
+      });
+      parser.parseString(body);
     });
     //res.render('homepage', { json: '' });
   });
