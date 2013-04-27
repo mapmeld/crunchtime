@@ -659,42 +659,64 @@ function getTimelineTime(val){
     return mintime + (maxtime - mintime) * val / 100;
   }
   else{
-  
+    var movetime = maxtime - mintime;
+    for(var g=0;g<gaps.length;g++){
+      movetime -= (gaps[g].end - gaps[g].start);
+    }
+    var mymin = mintime * 1;
+    for(var g=0;g<gaps.length;t++){
+      if(val > (gaps[g].start - mymin) / movetime * 100){
+        // gap has come and gone
+        mymin += (gaps[g].end - gaps[g].start);
+      }
+      else{
+        break;
+      }
+    }
+    return (mymin * 1 + val / 100 * movetime);
   }
 }
 
+var ingap = false;
 function setTimeline(t){
-  var val;
+  var val = null;
   if(!gaps.length){
     val = (t - mintime) / (maxtime - mintime) * 100;
   }
   else{
-    var movetime = maxtime;
+    var movetime = maxtime - mintime;
     for(var g=0;g<gaps.length;g++){
-      movetime -= (gaps[g].end + gaps[g].start);
+      movetime -= (gaps[g].end - gaps[g].start);
     }
     for(var g=0;g<gaps.length;g++){
       if((t > gaps[g].start) && (t < gaps[g].end)){
         // inside a gap
-        val = (t - mintime) / (movetime - mintime) * 100;
-        $(".clock").css({ display: "inline" });
-        setTimeout(function(){
-          setTimeline(gaps[g].end + 1);
-          $(".clock").css({ display: "none" });
-        }, 500);
+        if(!ingap){
+          ingap = true;
+          val = (t - mintime) / movetime * 100;
+          $(".clock").css({ display: "inline" });
+          setTimeout(function(){
+            setTimeline(gaps[g].end * 1 + 1);
+            $(".clock").css({ display: "none" });
+          }, 500);
+        }
         break;
       }
       else if(t < gaps[g].start){
         // before this gap
-        val = (t - mintime) / (movetime - mintime) * 100;
+        val = (t - mintime) / movetime * 100;
         break;
       }
       else{
-        t -= (gaps[g].end + gaps[g].start);
+        t -= (gaps[g].end - gaps[g].start);
       }
     }
+    if(val === null){
+      val = (t - mintime) / movetime * 100;
+    }
   }
-  $("#slidebar").slider({ value: val });
+  console.log(val);
+  $("#slidebar").slider({ value: Math.min(100, val) });
 }
 
 function updateTimeline(){
@@ -710,8 +732,8 @@ function updateTimeline(){
   for(var t=0;t<timelayers.length-1;t++){
     if(timelayers[t+1].time - timelayers[t].time > 0.1 * (maxtime - mintime)){
       gaps.push({
-        start: timelayers[t].time + 1000,
-        end: timelayers[t+1].time - 1000
+        start: timelayers[t].time * 1 + 1000,
+        end: timelayers[t+1].time * 1 - 1000
       });
     }
   }
