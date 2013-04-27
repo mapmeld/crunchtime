@@ -5,6 +5,7 @@ var map, playStep, fileindex;
 var mytime = new Date();
 var mintime = (new Date("January 1, 5000")) * 1;
 var maxtime = (new Date("January 1, 100")) * 1;
+var gaps = [ ];
 var settime = null;
 var maxlat = -90;
 var minlat = 90;
@@ -44,17 +45,17 @@ $(document).ready(function(){
   $("#slidebar").slider({
     orientation: "horizontal",
     range: "min",
-    min: (new Date()) - 24 * 60 * 60 * 1000,
-    max: (new Date()) * 1,
-    value: 500,
+    min: 0, // (new Date()) - 24 * 60 * 60 * 1000,
+    max: 100, // (new Date()) * 1,
+    value: 0, // 500,
     slide: function(event, ui){
       if(playStep){
         window.clearInterval(playStep);
         playStep = null;
       }
-      settime = ui.value;
-      displayTime(ui.value);
-      geotimes(ui.value);
+      settime = getTimelineTime(ui.value);
+      displayTime(settime);
+      geotimes(settime);
     }
   });
   
@@ -67,7 +68,9 @@ $(document).ready(function(){
       files = [ ];
       for(var t=0;t<myjson.length;t++){
         $.getJSON("/track/" + myjson[t], function(data){
-          processFile({ target: { result: data.xml } });
+          if(data.xml != "fail"){
+            processFile({ target: { result: data.xml } });
+          }
         });
       }
     }
@@ -163,7 +166,7 @@ $(document).ready(function(){
       }
       playStep = setInterval(function(){
         settime = Math.min(maxtime, settime + (maxtime - mintime) / 500 );
-        $("#slidebar").slider({ value: settime });
+        setTimeline(settime);
         displayTime(settime);
         geotimes(settime);
       }, 50);
@@ -651,15 +654,72 @@ function savemap(){
   });
 }
 
+function getTimelineTime(val){
+  if(!gaps.length){
+    return mintime + (maxtime - mintime) * val / 100;
+  }
+  else{
+  
+  }
+}
+
+function setTimeline(t){
+  var val;
+  if(!gaps.length){
+    val = (t - mintime) / (maxtime - mintime) * 100;
+  }
+  else{
+    var movetime = maxtime;
+    for(var g=0;g<gaps.length;g++){
+      movetime -= (gaps[g].end + gaps[g].start);
+    }
+    for(var g=0;g<gaps.length;g++){
+      if((t > gaps[g].start) && (t < gaps[g].end)){
+        // inside a gap
+        val = (t - mintime) / (movetime - mintime) * 100;
+        $(".clock").css({ display: "inline" });
+        setTimeout(function(){
+          setTimeline(gaps[g].end + 1);
+          $(".clock").css({ display: "none" });
+        }, 500);
+        break;
+      }
+      else if(t < gaps[g].start){
+        // before this gap
+        val = (t - mintime) / (movetime - mintime) * 100;
+        break;
+      }
+      else{
+        t -= (gaps[g].end + gaps[g].start);
+      }
+    }
+  }
+  $("#slidebar").slider({ value: val });
+}
+
 function updateTimeline(){
   if(maxtime > mintime && !firstfile){
     $(".instructions").css({ display: "none" });
     $(".output").css({ display: "block" });
   }
+
+  gaps = [ ];
+  var alltimes = timelayers.concat().sort(function(a,b){
+    return a.time - b.time;
+  });
+  for(var t=0;t<timelayers.length-1;t++){
+    if(timelayers[t+1].time - timelayers[t].time > 0.1 * (maxtime - mintime)){
+      gaps.push({
+        start: timelayers[t].time + 1000
+        end: timelayers[t+1].time - 1000
+      });
+    }
+  }
+  
   $("#slidebar").slider({
-    min: mintime,
-    max: maxtime,
-    value: mintime
+    min: 0, //mintime,
+    max: 100, //maxtime,
+    value: 0 //mintime
   });
   displayTime(mintime);
   geotimes(mintime);
