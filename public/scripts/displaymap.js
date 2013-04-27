@@ -687,6 +687,7 @@ function getTimelineTime(val){
 
 function setTimeline(t){
   var val = null;
+  var timetotal = t;
   if(!gaps.length){
     val = (t - mintime) / (maxtime - mintime) * 100;
   }
@@ -700,7 +701,6 @@ function setTimeline(t){
         // inside a gap
         if(!ingap){
           ingap = true;
-          val = (gaps[g].start - mintime) / movetime * 100;
           $(".clock").css({ display: "inline" });
           setTimeout(function(){
             if(ingap){
@@ -715,16 +715,13 @@ function setTimeline(t){
       }
       else if(t < gaps[g].start){
         // before this gap
-        val = (t - mintime) / movetime * 100;
         break;
       }
       else{
-        t -= (gaps[g].end - gaps[g].start);
+        timetotal -= (gaps[g].end - gaps[g].start);
       }
     }
-    if(val === null){
-      val = (t - mintime) / movetime * 100;
-    }
+    val = (timetotal - mintime) / movetime * 100;
   }
   $("#slidebar").slider({ value: Math.min(100, val) });
 }
