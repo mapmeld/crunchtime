@@ -122,7 +122,7 @@ passport.use(OSMStrategy);
   
   app.get('/track/:id', function(req, res){
     request.get({
-      url: 'http://api.openstreetmap.org/api/0.6/gpx/' + req.params.id + '/data',
+      url: 'http://www.openstreetmap.org/trace/' + req.params.id + '/data',
       encoding: null
     }, function(e, r, buffer){
       var output;
