@@ -113,15 +113,15 @@ passport.use(new OpenStreetMapStrategy({
     res.render('login', { user: req.user });
   });
   app.get('/account', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res){
-    res.send('hello 3');
+    res.json( req.user );
     //res.render('homepage', { json: '' });
   });
   app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
     res.send('hello 1');
   });
-  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
+  /*app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
     res.send('hello2');
-  });
+  });*/
   
   var replaceAll = function(src, oldr, newr){
     while(src.indexOf(oldr) > -1){
