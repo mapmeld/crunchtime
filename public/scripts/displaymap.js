@@ -14,6 +14,7 @@ var timelayers = [ ];
 var fixlayers = [ ];
 var trimvals = [ ];
 var oldlines = [ ];
+var reader, fileindex;
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -60,6 +61,17 @@ $(document).ready(function(){
   if(myjson.length){
     firstfile = false;
     myjson = $.parseJSON(myjson);
+    
+    if(myjson.length){
+      // load all tracks
+      for(var t=0;t<myjson.length;t++){
+        $.getJSON("/track/" + myjson[t], function(data){
+          processFile({ target: { result: data.xml } });
+        });
+      }
+      return;
+    }
+    
     var timed = myjson.timed;
     for(var t=0;t<timed.length;t++){
       if(typeof timed[t].times != 'undefined'){
@@ -217,8 +229,14 @@ var dropFile = function(e){
     }
     firstfile = false;
 
-    var reader = new FileReader();
-    reader.onload = function(e){
+    reader = new FileReader();
+    reader.onload = processFile;
+    fileindex = 0;
+    reader.readAsText(files[0]);
+  }
+};
+
+function processFile(e){
       var injson;
       try{
         injson = $.parseJSON( e.target.result );
@@ -554,10 +572,7 @@ var dropFile = function(e){
         savemap();
       }
     };
-    fileindex = 0;
-    reader.readAsText(files[0]);
-  }
-};
+}
 
 function savemap(){
   if(!timelayers.length || lasttimelength == timelayers.length + fixlayers.length){

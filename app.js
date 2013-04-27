@@ -119,6 +119,17 @@ passport.use(OSMStrategy);
   app.get('/login', function(req, res){
     res.render('login', { user: req.user });
   });
+  
+  app.get('/track/:id', function(req, res){
+    request.get({
+      url: 'http://api.openstreetmap.org/api/0.6/gpx/' + req.params.id + '/data',
+      encoding: null
+    }, function(e, r, buffer){
+      var output = bz2( buffer );
+      res.json({ xml: output.toString() });
+    });
+  });
+  
   app.get('/account', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res){
     request.get({
       url: 'http://api.openstreetmap.org/api/0.6/user/gpx_files',
@@ -137,52 +148,11 @@ passport.use(OSMStrategy);
             for(var a=0;a<attarray.length;a++){
               attrs[ attarray[a][0] ] = attarray[a][1];
             }
-            mytracks.push( { id: attrs["id"], pts: [ ] } );
+            mytracks.push( attrs["id"] );
           }
         });
         alerts.onEndDocument(function(){
-          var t = 0;
-          //for(var t=0;t<mytracks.length;t++){
-            request.get({
-              url: 'http://api.openstreetmap.org/api/0.6/gpx/' + mytracks[t].id + '/data',
-              oauth: {
-                consumer_key: process.env.OPENSTREETMAP_CONSUMER_KEY,
-                consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
-                token: req.user.token,
-                token_secret: req.user.tokenSecret
-              },
-              encoding: null
-            }, function(e, r, buffer){
-              var timeon = false;
-              var parser2 = new xml.SaxParser(function(alerts){
-                alerts.onStartElementNS(function(elem, attarray, prefix, uri, namespaces){
-                  if(elem == "trkpt"){
-                    var attrs = { };
-                    mytracks[t].pts.push({ ll: [ attrs["lat"] * 1.0, attrs["lng"] * 1.0 ], time: "" });
-                  }
-                  else if(elem == "time"){
-                    timeon = true;
-                  }
-                });
-                alerts.onCharacters(function(chars){
-                  if(timeon){
-                    mytracks[t].pts[ mytracks[t].pts.length - 1].time += chars;
-                  }
-                });
-                alerts.onEndElementNS(function(elem, attarray, prefix, uri, namespaces){
-                  if(elem == "time"){
-                    if(timeon){
-                      timeon = false;
-                    }
-                  }
-                });
-                alerts.onEndDocument(function(){
-                  return res.json( mytracks );
-                });
-              });
-              parser2.parseString( buffer.toString() );
-            });
-          //}
+          res.render('homepage', { json: mytracks });
         });
       });
       parser.parseString(body);
