@@ -9,14 +9,13 @@ var express = require('express')
     //, timemap = require('./timemap')
     , passport = require('passport')
     , OpenStreetMapStrategy = require('passport-openstreetmap').Strategy
+    , config = require('./config')
     ;
 
 var redis;
 
 var OPENSTREETMAP_CONSUMER_KEY = process.env.OSM_CONSUMER_KEY || "--insert-openstreetmap-consumer-key-here--";
 var OPENSTREETMAP_CONSUMER_SECRET = process.env.OSM_CONSUMER_SECRET || "--insert-openstreetmap-consumer-secret-here--";
-
-var init = exports.init = function (config) {
   
   //var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
   //mongoose.connect(db_uri);
@@ -83,7 +82,7 @@ var init = exports.init = function (config) {
     });
   });
   
-  ensureAuthenticated = function(req, res, next) {
+  var ensureAuthenticated = function(req, res, next) {
     if (req.isAuthenticated()) { return next(); }
     res.redirect('/login')
   };
@@ -94,6 +93,19 @@ var init = exports.init = function (config) {
   app.get('/account', ensureAuthenticated, function(req, res){
     res.render('account', { user: req.user });
   });
+  app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
+    res.send('hello 1');
+  });
+  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
+    res.send('hello 2');
+  });
+  
+  var replaceAll = function(src, oldr, newr){
+    while(src.indexOf(oldr) > -1){
+      src = src.replace(oldr, newr);
+    }
+    return src;
+  };
 
   //app.get('/auth', middleware.require_auth_browser, routes.index);
   //app.post('/auth/add_comment',middleware.require_auth_browser, routes.add_comment);
@@ -102,16 +114,6 @@ var init = exports.init = function (config) {
   app.get('*', function onNonexistentURL(req,res) {
     res.render('doesnotexist',404);
   });
-
-  return app;
-};
-  
-var replaceAll = function(src, oldr, newr){
-  while(src.indexOf(oldr) > -1){
-    src = src.replace(oldr, newr);
-  }
-  return src;
-};
 
 passport.serializeUser(function(user, done) {
   done(null, user);
@@ -138,19 +140,4 @@ passport.use(new OpenStreetMapStrategy({
   }
 ));
 
-
-
-
-// Don't run if require()'d
-if (!module.parent) {
-  var config = require('./config');
-  var app = init(config);
-  app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){
-    res.send('hello 1');
-  });
-  app.get('/auth/openstreetmap/callback', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res) {
-    res.send('hello 2');
-  });
-  app.listen(process.env.PORT || 3000);
-  //console.info("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-}
+app.listen(process.env.PORT || 3000);
