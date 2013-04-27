@@ -15,7 +15,7 @@
   },
   "engines": {
         "node": "0.8.X",
-        "npm":  "1.0.x"
+        "npm":  "1.1.x"
   },
   "devDependencies": {
       "mocha": ">=0.11.0"
