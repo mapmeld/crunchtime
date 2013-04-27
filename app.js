@@ -6,18 +6,20 @@ var express = require('express')
     , routes = require('./routes')
     , util = require('util')
     //, middleware = require('./middleware')
-    //, request = require('request')
     //, timemap = require('./timemap')
     , passport = require('passport')
     , OpenStreetMapStrategy = require('passport-openstreetmap').Strategy
     , config = require('./config')
     , util = require('util')
+    , xml = require('node-xml')
+    , request = require('request')
+    , qs = require('querystring')
     ;
 
 var redis;
 
 passport.serializeUser(function(user, done) {
-  console.log(user);
+  //console.log(user);
   done(null, user);
 });
 
@@ -25,7 +27,7 @@ passport.deserializeUser(function(obj, done) {
   done(null, obj);
 });
 
-passport.use(new OpenStreetMapStrategy({
+var OSMStrategy = new OpenStreetMapStrategy({
     consumerKey: process.env.OPENSTREETMAP_CONSUMER_KEY,
     consumerSecret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
     callbackURL: "http://www.cruncht.im/account"
@@ -41,17 +43,19 @@ passport.use(new OpenStreetMapStrategy({
       return done(null, profile);
     });
   }
-));
+);
+
+passport.use(OSMStrategy);
 
   //var db_uri = process.env.MONGOLAB_URI || process.env.MONGODB_URI || config.default_db_uri;
   //mongoose.connect(db_uri);
   
   if (process.env.REDISTOGO_URL) {
-    console.log("p1");
+    //console.log("p1");
     var rtg = require("url").parse(process.env.REDISTOGO_URL);
-    console.log("p2");
+    //console.log("p2");
     redis = require("redis").createClient(rtg.port, rtg.hostname);
-    console.log("p3");
+    //console.log("p3");
     redis.auth(rtg.auth.split(":")[1]);
   }
 
@@ -115,7 +119,17 @@ passport.use(new OpenStreetMapStrategy({
     res.render('login', { user: req.user });
   });
   app.get('/account', passport.authenticate('openstreetmap', { failureRedirect: '/login' }), function(req, res){
-    res.json( req.user );
+    request.get({
+      url: 'http://api.openstreetmap.org/api/0.6/user/gpx_files',
+      oauth: {
+        consumer_key: process.env.OPENSTREETMAP_CONSUMER_KEY,
+        consumer_secret: process.env.OPENSTREETMAP_CONSUMER_SECRET,
+        token: req.query.oauth_token,
+        token_secret: req.query.oauth_verifier
+      }
+    }, function(e, r, body){
+      res.send( body );
+    });
     //res.render('homepage', { json: '' });
   });
   app.get('/auth/openstreetmap', passport.authenticate('openstreetmap'), function(req, res){

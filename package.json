@@ -13,6 +13,9 @@
     , "redis": "0.8.2"
     , "passport": ">=0.1.16"
     , "passport-openstreetmap": ">=0.1.2"
+    , "node-xml": ">=1.0.1"
+    , "request": ">=0.10.0"
+    , "querystring": ">0.0.0"
   },
   "engines": {
         "node": "0.8.X",
