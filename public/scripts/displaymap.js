@@ -1058,7 +1058,7 @@ function simplifyLines(simplifyCoeff){
         // simplify this line
         var repMarker = new L.Marker();
         var leafPts = simplify(currentPts, simplifyCoeff);
-        for(var p=0;p<leafPts.length;p++){
+        for(var p=leafPts.length-1;p>=0;p--){
           var lat = leafPts[p].y * 1.0;
           var lng = leafPts[p].x * 1.0;
           var time = leafPts[p].z * 1;
