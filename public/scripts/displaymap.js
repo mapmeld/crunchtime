@@ -654,7 +654,6 @@ function savemap(){
     }
   }
   $.post('/map', { json: JSON.stringify(saver) }, function(data){
-    //console.log(data);
     history.pushState(null, null, '/map/' + data.outcome);
   });
 }
@@ -697,12 +696,13 @@ function setTimeline(t){
         // inside a gap
         if(!ingap){
           ingap = true;
-          val = (t - mintime) / movetime * 100;
+          val = (gaps[g].start - mintime) / movetime * 100;
           $(".clock").css({ display: "inline" });
           setTimeout(function(){
             if(ingap){
-              ingap = false;
+              settime = gaps[g].end * 1 + 1000;
               setTimeline(gaps[g].end * 1 + 1000);
+              ingap = false;
               $(".clock").css({ display: "none" });
             }
           }, 500);
@@ -722,7 +722,6 @@ function setTimeline(t){
       val = (t - mintime) / movetime * 100;
     }
   }
-  //console.log(val);
   $("#slidebar").slider({ value: Math.min(100, val) });
 }
 
