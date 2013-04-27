@@ -125,7 +125,13 @@ passport.use(OSMStrategy);
       url: 'http://api.openstreetmap.org/api/0.6/gpx/' + req.params.id + '/data',
       encoding: null
     }, function(e, r, buffer){
-      var output = bz2( buffer );
+      var output;
+      try{
+        output = bz2( buffer );
+      }
+      catch(e){
+        output = "fail"
+      }
       res.json({ xml: output.toString() });
     });
   });
