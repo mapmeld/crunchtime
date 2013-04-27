@@ -1073,7 +1073,7 @@ function simplifyLines(simplifyCoeff){
         
         // edit out the old timelayer
         for(var x=timelayers[t].length-1;x>=t;x--){
-          if(timelayers[t].geo == timelayers[x].geo){
+          if(timelayers[x].geo == currentMarker){
             timelayers.splice(x,1);
           }
         }
