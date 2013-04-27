@@ -1059,11 +1059,14 @@ function simplifyLines(simplifyCoeff){
         var repMarker = new L.Marker();
         var leafPts = simplify(currentPts, simplifyCoeff);
         for(var p=0;p<leafPts.length;p++){
-          leafPts[p] = new L.LatLng( leafPts[p].y * 1.0, leafPts[p].x * 1.0 );
+          var lat = leafPts[p].y * 1.0;
+          var lng = leafPts[p].x * 1.0;
+          var time = leafPts[p].z * 1;
+          leafPts[p] = new L.LatLng( lat, lng );
           timelayers.push({
             geo: repMarker,
             ll: leafPts[p],
-            time: new Date( leafPts[p].z * 1 )
+            time: new Date( time )
           });
         }
         
