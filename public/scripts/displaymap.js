@@ -14,7 +14,7 @@ var timelayers = [ ];
 var fixlayers = [ ];
 var trimvals = [ ];
 var oldlines = [ ];
-var reader, fileindex;
+var reader, fileindex, files;
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -210,7 +210,7 @@ var dropFile = function(e){
   e.stopPropagation();
   e.preventDefault();
 
-  var files = e.dataTransfer.files;
+  files = e.dataTransfer.files;
   if(files && files.length){
     if(firstfile){
       // remove default map
