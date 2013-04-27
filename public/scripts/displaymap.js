@@ -710,7 +710,7 @@ function updateTimeline(){
   for(var t=0;t<timelayers.length-1;t++){
     if(timelayers[t+1].time - timelayers[t].time > 0.1 * (maxtime - mintime)){
       gaps.push({
-        start: timelayers[t].time + 1000
+        start: timelayers[t].time + 1000,
         end: timelayers[t+1].time - 1000
       });
     }
