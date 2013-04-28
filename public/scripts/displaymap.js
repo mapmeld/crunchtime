@@ -202,9 +202,10 @@ $(document).ready(function(){
       $("#timelinetrim").modal('show');
 
       $("#smoothslider").slider({
+        range: true,
         min: 0.00001,
         max: 0.0003,
-        value: 0.00002,
+        value: 0.00003,
         slide: function(event, ui){
           simplifyBy(ui.value);
         }
@@ -1048,7 +1049,7 @@ function trimGPS(){
   savemap();
 }
 
-function simplifyBy(coeff){
+function simplifyBy(simplifyCoeff){
   if(!timelayers.length){
     return;
   }
