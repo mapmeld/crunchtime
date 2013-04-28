@@ -2,7 +2,19 @@
 
 Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
+### The Basic Idea
+
 <img src="https://raw.github.com/mapmeld/crunchtime/master/howcrunchtimeworks.png"/>
+
+### Trim and Simplify GPS Traces
+
+<img src="https://raw.github.com/mapmeld/crunchtime/master/trimtime.png"/>
+<br/>
+<img src="https://raw.github.com/mapmeld/crunchtime/master/simplifyjs.png"/>
+
+### Import Traces from OpenStreetMap
+
+<img src="https://raw.github.com/mapmeld/crunchtime/master/osmlogin.png"/>
 
 ## Currently supports:
 
@@ -19,6 +31,8 @@ Experimental timeline-map setup. Drop time-enabled map files onto the page. Acce
 * GeoJSON with no time information (appears at all times)
 
 * KML &lt;Point&gt;s and &lt;Polygon&gt;s with no time information (appears at all times, does not include styles or other KML properties)
+
+* Your OpenStreetMap traces (privacy set to identifiable)
 
 Will research:
 
