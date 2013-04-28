@@ -15,7 +15,7 @@ head
   script(type="text/javascript", src="/scripts/displaymap.js")
 body
   div#topbar
-    ul.span1.nav.nav-pills.nav-stacked
+    ul.span1.nav.nav-pills.nav-stacked.output
       li.active
         a#viewtime.sidetab(href="#") View
       li
@@ -26,7 +26,7 @@ body
         strong Drop GeoJSON, KML, GPX, and CSV files with times onto this page.&nbsp;
         a(href="/geos/ToEneko.kml") Download one
         span &nbsp;|&nbsp;
-        a(href="/login") Your OpenStreetMap Traces
+        a(href="/login") Your OpenStreetMap traces
       div.mobile
         strong Upload GeoJSON, KML, GPX, and CSV files with times.
         input(name="mygpx", type="file")
@@ -38,6 +38,9 @@ body
       a.btn.btn-success(href="#")
         i.icon-play-circle.icon-white
         span Play
+      a.btn.btn-inverse(href="#")
+        i.icon-pause.icon-white
+        span Pause
   div#map
 
   script(type="text/javascript", src="/scripts/bootstrap.min.js")

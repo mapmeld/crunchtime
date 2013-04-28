@@ -54,6 +54,8 @@ $(document).ready(function(){
       if(playStep){
         window.clearInterval(playStep);
         playStep = null;
+        $(".btn-inverse").css({ display: "none" });
+        $(".btn-success").css({ display: "block" });
       }
       settime = getTimelineTime(ui.value);
       displayTime(settime);
@@ -159,9 +161,13 @@ $(document).ready(function(){
     });
   }
   
-  // add play button timer
+  // add play and pause buttons
   playStep = null;
+  
   $(".btn-success").on("click", function(){
+    $(".btn-success").css({ display: "none" });
+    $(".btn-inverse").css({ display: "block" });
+    
     if(!playStep){
       if(!settime){
         settime = mintime;
@@ -173,11 +179,26 @@ $(document).ready(function(){
             movetime -= (gaps[g].end - gaps[g].start);
           }
           settime = Math.min(maxtime, settime + movetime / 500 );
+          if(settime == maxtime){
+            // end of the timeline
+            $(".btn-inverse").css({ display: "none" });
+            $(".btn-success").css({ display: "block" });
+            playStep = null;
+          }
           setTimeline(settime);
           displayTime(settime);
           geotimes(settime);
         }
       }, 50);
+    }
+  });
+  $(".btn-inverse").on("click", function(){
+    $(".btn-inverse").css({ display: "none" });
+    $(".btn-success").css({ display: "block" });
+
+    if(playStep){
+      clearInterval(playStep);
+      playStep = null;
     }
   });
 
