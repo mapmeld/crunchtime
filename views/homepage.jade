@@ -15,6 +15,12 @@ head
   script(type="text/javascript", src="/scripts/displaymap.js")
 body
   div#topbar
+    ul.span1.nav.nav-pills.nav-stacked
+      li.active
+        a#viewtime.sidetab(href="#") View
+      li
+        a#edittime.sidetab(href="#") Edit
+  
     div.instructions
       div.desktop
         strong Drop GeoJSON, KML, GPX, and CSV files with times onto this page.&nbsp;
@@ -26,7 +32,6 @@ body
         input(name="mygpx", type="file")
     div.output
       span#readtime
-      a#edittime.btn.btn-info Edit
       img.clock(src="/clock.gif")
     div#slidebar
     div#controls.output
