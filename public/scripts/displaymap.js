@@ -186,7 +186,7 @@ $(document).ready(function(){
       $("#trimstart").text( (new Date(mintime)).toUTCString() );
       $("#trimend").text( (new Date(maxtime)).toUTCString() );
       //$("#trimslider").html("");
-      $(".trimslider").slider({
+      $("#trimslider").slider({
         range: true,
         min: mintime,
         max: maxtime,
@@ -201,7 +201,7 @@ $(document).ready(function(){
       });
       $("#timelinetrim").modal('show');
 
-      $(".smoothslider").slider({
+      $("#smoothslider").slider({
         min: 0.00001,
         max: 0.0003,
         value: 0.00002,
