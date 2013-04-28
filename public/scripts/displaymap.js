@@ -199,8 +199,17 @@ $(document).ready(function(){
           $("#trimend").text( (new Date( ui.values[1] )).toUTCString() );
         }
       });
-
       $("#timelinetrim").modal('show');
+
+      $("#smoothslider").slider({
+        min: 0.00001,
+        max: 0.0003,
+        value: 0.00002,
+        slide: function(event, ui){
+          simplifyBy(ui.value);
+        }
+      });
+
     }
   });
   $("#trimnow").on("click", function(){
@@ -1037,6 +1046,51 @@ function trimGPS(){
   $(".modal").modal('hide');
   
   savemap();
+}
+
+function simplifyBy(coeff){
+  if(!timelayers.length){
+    return;
+  }
+  
+  // set up canvas preview
+  $("#smoothpreview")[0].width = $("#smoothpreview")[0].width;
+  var ctx = $("#smoothpreview")[0].getContext("2d");
+  ctx.strokeStyle = "#f00";
+  var canvWidth = $("#smoothpreview")[0].offsetWidth;
+  var canvHeight = $("#smoothpreview")[0].offsetHeight;
+
+  var currentMarker = timelayers[timelayers.length-1].geo;
+  var currentPts = [ ];
+  for(var t=timelayers.length-1;t>=0;t--){
+    if(timelayers[t].geo != currentMarker || t == 0){
+      if(currentPts.length >= 2){
+        // simplify this line
+        var leafPts = simplify(currentPts, simplifyCoeff);
+        ctx.beginPath();
+        for(var p=0;p<leafPts.length-1;p++){
+          ctx.moveTo(Math.round( (leafPts[p].x - minlng) / (maxlng - minlng) * canvWidth ), canvHeight - Math.round( (leafPts[p].y - minlat) / (maxlat - minlat) * canvHeight ) );
+          ctx.lineTo(Math.round( (leafPts[p+1].x - minlng) / (maxlng - minlng) * canvWidth ), canvHeight - Math.round( (leafPts[p+1].y - minlat) / (maxlat - minlat) * canvHeight ) );
+        }
+        ctx.stroke();
+      }
+
+      // set up for next geo
+      currentMarker = timelayers[t].geo;
+      if(typeof timelayers[t].time != "undefined"){
+        currentPts = [{
+          x: timelayers[t].ll.lng,
+          y: timelayers[t].ll.lat
+        }];
+      }
+    }
+    else if(typeof timelayers[t].time != "undefined"){
+      currentPts.push({
+        x: timelayers[t].ll.lng,
+        y: timelayers[t].ll.lat
+      });
+    }
+  }
 }
 
 function simplifyLines(simplifyCoeff){
