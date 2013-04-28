@@ -183,6 +183,7 @@ $(document).ready(function(){
             // end of the timeline
             $(".btn-inverse").css({ display: "none" });
             $(".btn-success").css({ display: "inline" });
+            clearInterval(playStep);
             playStep = null;
           }
           setTimeline(settime);
