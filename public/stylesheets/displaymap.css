@@ -88,3 +88,6 @@ ul li{
   border-bottom-left-radius: 0px;
   text-align: right;
 }
+.btn-inverse{
+  display: none;
+}

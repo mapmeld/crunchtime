@@ -55,7 +55,7 @@ $(document).ready(function(){
         window.clearInterval(playStep);
         playStep = null;
         $(".btn-inverse").css({ display: "none" });
-        $(".btn-success").css({ display: "block" });
+        $(".btn-success").css({ display: "inline" });
       }
       settime = getTimelineTime(ui.value);
       displayTime(settime);
@@ -166,7 +166,7 @@ $(document).ready(function(){
   
   $(".btn-success").on("click", function(){
     $(".btn-success").css({ display: "none" });
-    $(".btn-inverse").css({ display: "block" });
+    $(".btn-inverse").css({ display: "inline" });
     
     if(!playStep){
       if(!settime){
@@ -182,7 +182,7 @@ $(document).ready(function(){
           if(settime == maxtime){
             // end of the timeline
             $(".btn-inverse").css({ display: "none" });
-            $(".btn-success").css({ display: "block" });
+            $(".btn-success").css({ display: "inline" });
             playStep = null;
           }
           setTimeline(settime);
@@ -194,7 +194,7 @@ $(document).ready(function(){
   });
   $(".btn-inverse").on("click", function(){
     $(".btn-inverse").css({ display: "none" });
-    $(".btn-success").css({ display: "block" });
+    $(".btn-success").css({ display: "inline" });
 
     if(playStep){
       clearInterval(playStep);
