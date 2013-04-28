@@ -17,6 +17,7 @@ var trimvals = [ ];
 var oldlines = [ ];
 var reader, fileindex, files;
 var ingap = false;
+var coeff = null;
 
 $(document).ready(function(){
   // on tablet or mobile | replace drag-and-drop with upload button
@@ -200,17 +201,6 @@ $(document).ready(function(){
         }
       });
       $("#timelinetrim").modal('show');
-
-      $("#smoothslider").slider({
-        range: true,
-        min: 0.00001,
-        max: 0.0003,
-        value: 0.00003,
-        slide: function(event, ui){
-          simplifyBy(ui.value);
-        }
-      });
-
     }
   });
   $("#trimnow").on("click", function(){
@@ -218,6 +208,11 @@ $(document).ready(function(){
     maxtime = trimvals[1];
     trimGPS();
     updateTimeline();
+  });
+  
+  $("#smoothnow").on("click", function(){
+    if(!coeff){ return; }
+    simplifyLines( coeff );
   });
 
 });
@@ -1053,6 +1048,7 @@ function simplifyBy(simplifyCoeff){
   if(!timelayers.length){
     return;
   }
+  coeff = simplifyCoeff;
   
   //console.log(coeff);
   
