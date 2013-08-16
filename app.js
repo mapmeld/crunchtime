@@ -178,6 +178,18 @@ passport.use(OSMStrategy);
     }
     return src;
   };
+  
+  app.get('/culturewok', function(req, res){
+    res.render('culturewok', { json: '' });
+  });
+  app.get('/culturewok/:byid', function(req, res){
+    redis.get(req.params.byid, function(err, reply){
+      if(err){
+        return res.send(err);
+      }
+      res.render('culturewok', { json: reply });
+    });
+  });
 
   //app.get('/auth', middleware.require_auth_browser, routes.index);
   //app.post('/auth/add_comment',middleware.require_auth_browser, routes.add_comment);

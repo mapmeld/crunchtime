@@ -73,9 +73,9 @@ body
       a#trimnow.btn.btn-primary.pull-right(href="#") Trim Now
 
       h3 Smooth Lines
-      a.btn.btn-info(href="#", onclick="simplifyBy(0.00001)", style="margin-right:10px;") Low
-      a.btn.btn-info(href="#", onclick="simplifyBy(0.00005)", style="margin-right:10px;") Medium
-      a.btn.btn-info(href="#", onclick="simplifyBy(0.0001)", style="margin-right:10px;") High
+      a.btn.btn-info.smoothopt(href="#", onclick="simplifyBy(0.00001)") Low
+      a.btn.btn-info.smoothopt(href="#", onclick="simplifyBy(0.00005)") Medium
+      a.btn.btn-info.smoothopt(href="#", onclick="simplifyBy(0.0001)") High
       a.btn.btn-info(href="#", onclick="simplifyBy(0.0002)") Most
       canvas#smoothpreview(width="500", height="200")
       br

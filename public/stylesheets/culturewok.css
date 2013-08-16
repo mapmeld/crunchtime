@@ -10,37 +10,15 @@ body {
   background-color: #f0f0f0;
 }
 #map {
-  height:80%;
-  overflow:none;
-  position:absolute;
-  top:19%;
-  bottom:0;
+  height:100%;
+  overflow:hidden;
   width:100%;
-  left:0;
-  border-top: 6px solid #444;
-}
-.span2{
-  width: 11%;
 }
 .marker{
   vertical-align:middle;
   width: 26px;
   margin: 8px;
   display: inline-block;
-}
-ol li{
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-ul li{
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-#topbar{
-  padding-bottom: 20px;
-  width: 100%;
-  height: 20%;
-  overflow: none;
 }
 #slidebar {
   width: 50%;
@@ -57,16 +35,6 @@ ul li{
 #slidebar a.ui-slider-handle{
   display: block;
 }
-.output, .instructions{
-  font-family: verdana, sans-serif;
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 5px;
-}
-.output{
-  display: none;
-}
 #controls i{
   vertical-align: middle;
   margin-top: -2px;
@@ -82,15 +50,6 @@ ul li{
   height: 28px;
   margin-left: 10px;
 }
-.sidetab{
-  border-left: none;
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
-  text-align: right;
-}
 .btn-inverse{
   display: none;
-}
-.smoothopt{
-  margin-right: 10px;
 }
