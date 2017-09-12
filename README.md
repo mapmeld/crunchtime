@@ -1,5 +1,7 @@
 # Crunchtime
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mapmeld/crunchtime.svg)](https://greenkeeper.io/)
+
 Experimental timeline-map setup. Drop time-enabled map files onto the page. Accepts multiple files, multiple formats, and combining multiple formats.
 
 ### The Basic Idea
